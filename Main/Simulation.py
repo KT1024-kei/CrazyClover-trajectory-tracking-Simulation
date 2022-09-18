@@ -88,12 +88,12 @@ class Simulation(Mathfunction):
     def main(self):
         print("main function")
         t = 0.0
-        T, M = 0.0, np.array([0.0, 0.0, 0.0])
+        M = np.array([0.0, 0.0 ,0.0, 0.0])
         while self.T_exp > t:
             
             for i in range(self.num_drone):
                 self.state_step(self.drones[i])
-                self.logs[i].write_state(t=t, P=self.P, V=self.V, R=self.R, Euler=self.Euler, Wb=self.Wb, Euler_rate=self.Euler_rate*180/np.pi, T=T, M=M)
+                self.logs[i].write_state(t=t, P=self.P, V=self.V, R=self.R, Euler=self.Euler, Wb=self.Wb, Euler_rate=self.Euler_rate*180/np.pi, M=M)
                 
             
             for i in range(self.num_drone):
