@@ -102,9 +102,8 @@ class Simulation(Mathfunction):
                 self.ctrls[i].log(self.logs[i], t)
                 
             for i in range(self.num_drone):
-                T = self.ctrls[i].input_thrust_pwm
-                M = self.ctrls[i].input_M_pwm
-                self.drones[i].main(T, M)
+                M = self.ctrls[i].input_MP_pwm
+                self.drones[i].main(M)
 
             t += self.dt
         for i in range(self.num_drone):

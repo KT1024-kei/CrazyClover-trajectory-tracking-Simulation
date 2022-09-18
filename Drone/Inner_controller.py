@@ -63,7 +63,6 @@ class Controller_attituede_rate(Mathfunction):
     self.controll_attitude_rate()
     self.FM2MP(F)
     self.MM_gf2pwm()
-    self.MP2FM()
     # print("C",self.MP_gf)
     # print(self.M_gf)
 
@@ -77,7 +76,6 @@ class Controller_attituede_rate(Mathfunction):
     self.controll_attitude_rate2()
     self.FM2MP(F)
     self.MM_gf2pwm()
-    self.MP2FM()
     # print("C",self.MP_gf)
     # print(self.M_gf)
 
@@ -108,10 +106,6 @@ class Controller_attituede_rate(Mathfunction):
 
     self.MP_gf = np.matmul(self.FM2MP_map, np.array([F, self.M_gf[0], self.M_gf[1], -self.M_gf[2]]))
 
-  def MP2FM(self):
-    # print(np.matmul(self.MP2FM_map, self.MP_pwm))
-    # self.FM_pwm = np.matmul(self.MP2FM_map, self.MP_pwm)
-    self.FM_pwm = self.MP_pwm
 
 
   def MM_gf2pwm(self):

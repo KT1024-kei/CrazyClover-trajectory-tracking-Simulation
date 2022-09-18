@@ -52,8 +52,7 @@ class Controllers():
   
   def get_output(self, t):
     self.cal_output(t)
-    self.input_thrust_pwm = self.controller.input_thrust_pwm
-    self.input_M_pwm = self.controller.input_M_pwm
+    self.input_MP_pwm = self.controller.input_MP_pwm
 
   def controller_trajectory_tracking(self, refs):
     print("Trajectory tracking controller")

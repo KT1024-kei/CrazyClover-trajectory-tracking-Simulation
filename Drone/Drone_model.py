@@ -118,11 +118,11 @@ class Drone(Mathfunction):
 
     return Out_m
 
-  def main(self, Thrust, Euelr_rate):
+  def main(self, M):
 
     
     # M_pwm = self.Power_destribution_stock(Thrust, Euelr_rate)
-    M_pwm = self.Power_destribution_stock2(np.array([Thrust, Euelr_rate[0], Euelr_rate[1] ,Euelr_rate[2]]))
+    M_pwm = self.Power_destribution_stock2(M)
     # print('C', M_pwm)
     M_gf = self.MM_pwm2gf(M_pwm)
     # print(M_gf)
