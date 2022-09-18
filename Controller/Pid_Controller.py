@@ -95,8 +95,10 @@ class Pid_Controller(Mathfunction):
     self.Y_pid.runpid()
 
     input_Euler_rate = np.array([self.R_pid.output, self.P_pid.output, self.Y_pid.output])*self.rad2deg
+    input_Wb = self.EAR2BAV(self.Euler, input_Euler_rate)
 
-    self.inner_Controller.inner_controller(self.input_thrust_gf + self.gravity_calcel, input_Euler_rate)
+    # self.inner_Controller.inner_controller(self.input_thrust_gf + self.gravity_calcel, input_Euler_rate)
+    self.inner_Controller.inner_controller2(self.input_thrust_gf + self.gravity_calcel, input_Wb)
     self.input_MP_pwm = self.inner_Controller.MP_pwm
 
   def controller_velocity_pid(self):
