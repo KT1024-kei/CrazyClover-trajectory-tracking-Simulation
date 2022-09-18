@@ -1,9 +1,12 @@
+import sys
+sys.path.append('../')
+
 import numpy as np
 
-from pid import PID
-from Inner_controller import Controller_attituede_rate
-from Pid_Controller import Pid_Controller
-from Mellinger_controller import Mellinger
+from tools.pid import PID
+from Drone.Inner_controller import Controller_attituede_rate
+from Controller.Pid_Controller import Pid_Controller
+from Controller.Mellinger_controller import Mellinger
 
 class Controllers():
 

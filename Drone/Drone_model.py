@@ -1,6 +1,10 @@
-from Mathfunction import Mathfunction
-from State import State
+import sys
+sys.path.append('../')
+
 import numpy as np
+
+from tools.Mathfunction import Mathfunction
+from Drone.State import State
 
 class Drone(Mathfunction):
   def __init__(self, dt):

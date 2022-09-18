@@ -5,13 +5,16 @@ tips
 自作モジュールを読み込みたい時はsettingsのところでpython.analysis.extraPathsにパスを登録する
 
 """
+import sys
+sys.path.append('../')
 
 import numpy as np
-from Mathfunction import Mathfunction, Integration
-from Drone_model import Drone, State
+
+from tools.Mathfunction import Mathfunction, Integration
+from tools.Log import Log_data
+from Drone.Drone_model import Drone, State
 # from Controller import Controller
-from Controllers import Controllers
-from Log import Log_data
+from Controller.Controllers import Controllers
 
 
 

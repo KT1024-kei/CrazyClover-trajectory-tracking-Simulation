@@ -1,8 +1,11 @@
+import sys
+sys.path.append('../')
+
 import numpy as np
-from Trajectory import Trajectory
-from Mathfunction import Mathfunction
-from Inner_controller import Controller_attituede_rate
-from Log import Log_data
+from Controller.Trajectory import Trajectory
+from tools.Mathfunction import Mathfunction
+from Drone.Inner_controller import Controller_attituede_rate
+from tools.Log import Log_data
 
 class Mellinger(Mathfunction):
   def __init__(self, dt):

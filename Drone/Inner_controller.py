@@ -1,7 +1,10 @@
+import sys
+sys.path.append('../')
+
 import numpy as np
-from pid import PID
-from Drone_model import Drone
-from Mathfunction import Mathfunction
+from tools.pid import PID
+from Drone.Drone_model import Drone
+from tools.Mathfunction import Mathfunction
 
 class Controller_attituede_rate(Mathfunction):
 

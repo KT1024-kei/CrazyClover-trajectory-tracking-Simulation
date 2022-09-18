@@ -1,8 +1,11 @@
+import sys
+sys.path.append('../')
+
 import numpy as np
 
-from pid import PID
-from Inner_controller import Controller_attituede_rate
-from Mathfunction import Mathfunction
+from tools.pid import PID
+from Drone.Inner_controller import Controller_attituede_rate
+from tools.Mathfunction import Mathfunction
 
 class Pid_Controller(Mathfunction):
 

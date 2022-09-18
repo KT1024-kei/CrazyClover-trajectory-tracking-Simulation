@@ -1,8 +1,10 @@
 from msilib import PID_APPNAME
 import numpy as np
+import sys
+sys.path.append('../')
 
-from pid import PID
-from Inner_controller import Controller_attituede_rate
+from tools.pid import PID
+from Drone.Inner_controller import Controller_attituede_rate
 
 class Controller():
 
