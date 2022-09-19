@@ -48,7 +48,31 @@ class Controllers():
       self.set_state = self.mellinger_controller.set_state
       self.init_controller = self.mellinger_controller.mellinger_init
       self.set_reference = self.mellinger_controller.set_reference
-      self.log = self.mellinger_controller.log
+      self.stop_tracking = self.mellinger_controller.stop_tracking
+      self.log = self.mellinger_controller.log_nom
+  
+  def switch_controller(self, controller_type):
+
+    if controller_type == "pid":
+      self.pid_controller = Pid_Controller(self.dt, self.mode)
+      self.controller = self.pid_controller
+      self.set_reference = self.pid_controller.set_reference
+      self.cal_output = self.pid_controller.controller_position_pid
+      self.set_state = self.pid_controller.set_state
+      self.init_controller = self.pid_controller.pid_init
+      self.log = self.pid_controller.log_nom
+
+    elif controller_type == "mellinger":
+      self.mellinger_controller = Mellinger(self.dt)
+      self.controller = self.mellinger_controller
+      self.cal_output = self.mellinger_controller.mellinger_ctrl
+      self.set_state = self.mellinger_controller.set_state
+      self.init_controller = self.mellinger_controller.mellinger_init
+      self.set_reference = self.mellinger_controller.set_reference
+      self.stop_tracking = self.mellinger_controller.stop_tracking
+      self.log = self.mellinger_controller.log_nom
+
+    self.init_controller()
   
   def get_output(self, t):
     self.cal_output(t)
