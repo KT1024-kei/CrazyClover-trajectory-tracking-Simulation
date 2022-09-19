@@ -3,15 +3,15 @@ sys.path.append('../')
 
 import numpy as np
 from tools.pid import PID
-from Drone.Drone_model import Drone
+# from Drone.Drone_model import Drone
 from tools.Mathfunction import Mathfunction
 
 class Controller_attituede_rate(Mathfunction):
 
-  def __init__(self, dt):
+  def __init__(self, dt, mQ):
     print("initialize Attitude rate controller")
 
-    self.mQ = Drone(dt).mQ
+    self.mQ = mQ
     self.g = 9.8
     # Euler angle rate PID
     self.R_rate_pid = PID(1.0, 0.5, 0.0, dt)

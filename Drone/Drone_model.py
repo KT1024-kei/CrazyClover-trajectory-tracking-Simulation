@@ -5,12 +5,14 @@ import numpy as np
 
 from tools.Mathfunction import Mathfunction
 from Drone.State import State
+from Drone.Inner_controller import Controller_attituede_rate
 
 class Drone(Mathfunction):
   def __init__(self, dt):
     print("Initial DRONE model")
 
     self.set_parametor(dt)
+    self.inner_controller = Controller_attituede_rate(dt, self.mQ)
     
   def set_parametor(self, dt):
     # print("Set Simulation and Physical parametor")
@@ -43,6 +45,8 @@ class Drone(Mathfunction):
     self.Euler_rate.pre[1] = -self.Euler_rate.pre[1]
     self.Euler.integration(self.Euler_rate.pre)
     self.R.integration(np.matmul(self.R.now, self.Vee(self.Wb.pre)))
+
+    self.inner_controller.set_state(self.Wb.now, self.Euler_rate.now)
     # print(self.R.now)
 
     
@@ -50,6 +54,11 @@ class Drone(Mathfunction):
     # print("Input Thrust[gF] and Euler rate[rad/s]")
 
     return np.matmul(self.CM_MP2FM, Moter_Power)
+
+  def get_input_acc_and_Wb(self, acc, Wb):
+
+    self.inner_controller.inner_controller2(acc, Wb)
+    return self.inner_controller.MP_pwm
 
   def Power_destribution_stock(self, T, Eulerrate):
     # print("Destribute Power to each Moter")
@@ -118,11 +127,12 @@ class Drone(Mathfunction):
 
     return Out_m
 
-  def main(self, M):
+  def main(self, acc, Wb):
 
-    
+    self.M = self.get_input_acc_and_Wb(acc, Wb)
+
     # M_pwm = self.Power_destribution_stock(Thrust, Euelr_rate)
-    M_pwm = self.Power_destribution_stock2(M)
+    M_pwm = self.Power_destribution_stock2(self.M)
     # print('C', M_pwm)
     M_gf = self.MM_pwm2gf(M_pwm)
     # print(M_gf)
