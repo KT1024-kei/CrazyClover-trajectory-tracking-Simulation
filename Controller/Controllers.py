@@ -3,8 +3,7 @@ sys.path.append('../')
 
 import numpy as np
 
-from tools.pid import PID
-from Drone.Inner_controller import Controller_attituede_rate
+
 from Controller.Pid_Controller import Pid_Controller
 from Controller.Mellinger_controller import Mellinger
 
@@ -18,7 +17,6 @@ class Controllers():
     self.mode = mode
     self.traj = traj
     self.controller_mode = controller_mode
-    self.inner_Controller = Controller_attituede_rate(dt)
     self.pid_controller = Pid_Controller(self.dt, self.mode)
     self.mellinger_controller = Mellinger(self.dt)
 
@@ -76,7 +74,8 @@ class Controllers():
   
   def get_output(self, t):
     self.cal_output(t)
-    self.input_MP_pwm = self.controller.input_MP_pwm
+    self.input_acc = self.controller.input_acc
+    self.input_Wb = self.controller.input_Wb
 
   def controller_trajectory_tracking(self, refs):
     print("Trajectory tracking controller")

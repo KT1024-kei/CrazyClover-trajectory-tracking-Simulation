@@ -4,13 +4,10 @@ sys.path.append('../')
 import numpy as np
 from Controller.Trajectory import Trajectory
 from tools.Mathfunction import Mathfunction
-from Drone.Inner_controller import Controller_attituede_rate
-from tools.Log import Log_data
 
 class Mellinger(Mathfunction):
   def __init__(self, dt):
     self.dt = dt
-    self.inner_controller = Controller_attituede_rate(self.dt)
   def mellinger_init(self):
     print("Init Mellinger Controller")
 
@@ -36,7 +33,6 @@ class Mellinger(Mathfunction):
     self.Euler = Euler
     self.Wb = Wb
     self.Euler_rate = Euler_rate
-    self.inner_controller.set_state(Wb, Euler_rate)
   
   def Position_controller(self):
 
@@ -83,14 +79,14 @@ class Mellinger(Mathfunction):
     self.traj_W[2] = traj_wz
     
     # calculate input Body angular velocity
-    self.input_W = self.traj_W + self.kR*self.Wedge(-(np.matmul(traj_R.T, self.R) - np.matmul(self.R.T, traj_R))/2.0)
+    self.input_Wb = self.traj_W + self.kR*self.Wedge(-(np.matmul(traj_R.T, self.R) - np.matmul(self.R.T, traj_R))/2.0)
     
     # calculate nominal Euler angle and Euler angle rate
     self.Euler_nom[1] =  np.arctan( ( traj_acc[0]*np.cos(traj_yaw) + traj_acc[1]*np.sin(traj_yaw) ) / (traj_acc[2]))                                                        
     self.Euler_nom[0] = np.arctan( ( traj_acc[0]*np.sin(traj_yaw) - traj_acc[1]*np.cos(traj_yaw) ) / np.sqrt( (traj_acc[2])**2 + ( traj_acc[0]*np.cos(traj_yaw) + traj_acc[2]*np.sin(traj_yaw) )**2));  
     self.Euler_nom[2] = traj_yaw
 
-    self.input_Euler_rate = self.BAV2EAR(self.Euler_nom, self.input_W)
+    self.input_Euler_rate = self.BAV2EAR(self.Euler_nom, self.input_Wb)
     self.Euler_rate_nom = self.BAV2EAR(self.Euler_nom, self.traj_W)
 
   def mellinger_ctrl(self, t):
@@ -98,10 +94,6 @@ class Mellinger(Mathfunction):
     self.trajectory.set_traj()
     self.Position_controller()
     self.Attitude_controller()
-
-    # self.inner_controller.inner_controller(self.input_acc, self.Euler_rate)
-    self.inner_controller.inner_controller2(self.input_acc, self.input_W)
-    self.input_MP_pwm = self.inner_controller.MP_pwm
 
   def stop_tracking(self):
     self.set_reference("stop")

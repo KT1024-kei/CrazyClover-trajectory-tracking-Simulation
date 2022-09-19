@@ -4,7 +4,6 @@ sys.path.append('../')
 import numpy as np
 
 from tools.pid import PID
-from Drone.Inner_controller import Controller_attituede_rate
 from tools.Mathfunction import Mathfunction
 
 class Pid_Controller(Mathfunction):
@@ -13,7 +12,6 @@ class Pid_Controller(Mathfunction):
 
       self.mode = mode
       self.dt = dt
-      self.inner_Controller = Controller_attituede_rate(dt)
       self.input_thrust_gf = 0.0
       self.input_M_gf = np.array([0.0, 0.0, 0.0])
       
@@ -59,9 +57,6 @@ class Pid_Controller(Mathfunction):
     self.P_pid.state = Euler[1]
     self.Y_pid.state = Euler[2]
 
-    self.inner_Controller.set_state(Wb, Euler_rate)
-
-
 
   def set_reference(self, P, V, R, Euler, Wb, Euler_rate, mode):
       
@@ -94,12 +89,9 @@ class Pid_Controller(Mathfunction):
     self.Y_pid.Err = Yaw_Error
     self.Y_pid.runpid()
 
-    input_Euler_rate = np.array([self.R_pid.output, self.P_pid.output, self.Y_pid.output])*self.rad2deg
-    input_Wb = self.EAR2BAV(self.Euler, input_Euler_rate)
-
-    # self.inner_Controller.inner_controller(self.input_thrust_gf + self.gravity_calcel, input_Euler_rate)
-    self.inner_Controller.inner_controller2(self.input_thrust_gf + self.gravity_calcel, input_Wb)
-    self.input_MP_pwm = self.inner_Controller.MP_pwm
+    input_Euler_rate = np.array([self.R_pid.output, self.P_pid.output, self.Y_pid.output])
+    self.input_Wb = self.EAR2BAV(self.Euler, input_Euler_rate)
+    self.input_acc = self.input_thrust_gf + self.gravity_calcel
 
   def controller_velocity_pid(self):
     # print("PID Velocity controller")
