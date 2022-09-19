@@ -101,7 +101,10 @@ class Mellinger(Mathfunction):
 
     # self.inner_controller.inner_controller(self.input_acc, self.Euler_rate)
     self.inner_controller.inner_controller2(self.input_acc, self.input_W)
-    self.input_MP_pwm = self.inner_Controller.MP_pwm
+    self.input_MP_pwm = self.inner_controller.MP_pwm
+
+  def stop_tracking(self):
+    self.set_reference("stop")
 
   def log_nom(self, log, t):
     log.write_nom(t=t, P=self.trajectory.traj_pos, V=self.trajectory.traj_vel, Euler=self.Euler_nom, Wb=self.traj_W, Euler_rate=self.Euler_rate_nom)

@@ -12,6 +12,7 @@ class Trajectory():
     self.traj_yaw_rate = 0.0
 
     self.trajectory_plan = trajctory_plan
+    print(trajctory_plan)
     
   
   def set_clock(self, t):
@@ -21,10 +22,21 @@ class Trajectory():
     T = 5.0
     A = 4.0
     w = 2*np.pi/T
-    self.traj_pos[0] =  A*np.cos(w*self.t);      self.traj_pos[1] =  A*np.sin(w*self.t);      self.traj_pos[2] = 0.0
+    self.traj_pos[0] =  A*np.cos(w*self.t);      self.traj_pos[1] =  A*np.sin(w*self.t);      self.traj_pos[2] = 1.0
     self.traj_vel[0] = -A*w*np.sin(w*self.t);    self.traj_vel[1] =  A*w*np.cos(w*self.t);    self.traj_vel[2] = 0.0
     self.traj_acc[0] = -A*w**2*np.cos(w*self.t); self.traj_acc[1] = -A*w**2*np.sin(w*self.t); self.traj_acc[2] = 9.8
     self.traj_jer[0] =  A*w**3*np.sin(w*self.t); self.traj_jer[1] = -A*w**3*np.cos(w*self.t); self.traj_jer[2] = 0.0
+    # print(self.traj_acc)
+
+    self.traj_yaw = 0.0
+    self.traj_yaw_rate = 0.0
+  
+  def stop_track(self):
+
+    self.traj_pos[0] = 0.0; self.traj_pos[1] = 0.0;  self.traj_pos[2] = 1.0
+    self.traj_vel[0] = 0.0; self.traj_vel[1] = 0.0;  self.traj_vel[2] = 0.0
+    self.traj_acc[0] = 0.0; self.traj_acc[1] = 0.0;  self.traj_acc[2] = 9.8
+    self.traj_jer[0] = 0.0; self.traj_jer[1] = 0.0;  self.traj_jer[2] = 0.0
     # print(self.traj_acc)
 
     self.traj_yaw = 0.0
@@ -35,6 +47,8 @@ class Trajectory():
     if self.trajectory_plan == "circle":
       self.traj_circle()
     
+    elif self.trajectory_plan == "stop":
+      self.stop_track()
     
 
 
