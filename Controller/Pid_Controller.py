@@ -91,7 +91,7 @@ class Pid_Controller(Mathfunction):
 
     input_Euler_rate = np.array([self.R_pid.output, self.P_pid.output, self.Y_pid.output])
     self.input_Wb = self.EAR2BAV(self.Euler, input_Euler_rate)
-    self.input_acc = self.input_thrust_gf + self.gravity_calcel
+    self.input_acc = max(-9.8/2.0, self.input_thrust_gf) + self.gravity_calcel
 
   def controller_velocity_pid(self):
     # print("PID Velocity controller")
