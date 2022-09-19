@@ -102,8 +102,10 @@ class Simulation(Mathfunction):
 
     def Drone_move_flow(self, t):
         for i in range(self.num_drone):
-            M = self.ctrls[i].input_MP_pwm
-            self.drones[i].main(M)
+            acc = self.ctrls[i].input_acc
+            Wb = self.ctrls[i].input_Wb
+            self.drones[i].main(acc, Wb)
+            self.M = self.drones[i].M
 
     def Log_flow(self):
         for i in range(self.num_drone):
