@@ -26,7 +26,8 @@ class Drone(Mathfunction):
     self.dt = dt
 
     self.CM_MP2FM  = np.array([[1.0, 1.0, 1.0, 1.0], [-1.0, -1.0, 1.0, 1.0], [-1.0, 1.0, 1.0, -1.0], [1.0, -1.0, 1.0, -1.0]])
-
+    self.M = np.zeros(4)
+ 
   def set_initial_state(self, P, V, R, Euler, Wb, Euler_rate, dt):
     # print("set references")
     self.P = State(dt, P)
