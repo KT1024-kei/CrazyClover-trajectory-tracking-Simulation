@@ -8,6 +8,10 @@ from tools.Mathfunction import Mathfunction
 class Mellinger(Mathfunction):
   def __init__(self, dt):
     self.dt = dt
+
+  def set_dt(self, dt):
+    self.dt = dt
+    
   def mellinger_init(self):
     print("Init Mellinger Controller")
 

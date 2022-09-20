@@ -22,6 +22,9 @@ class Pid_Controller(Mathfunction):
 
       self.input_acc = 0.0
       self.input_Wb = np.zeros(3)
+  
+  def set_dt(self, dt):
+    self.dt = dt
 
   def pid_init(self):
       self.R_pid = PID(15.0, 5.0, 0.0, self.dt)
@@ -56,6 +59,18 @@ class Pid_Controller(Mathfunction):
     self.R_pid.state = Euler[0]
     self.P_pid.state = Euler[1]
     self.Y_pid.state = Euler[2]
+
+    # if d gain == 0
+    
+    # self.R_pid.dt = self.dt 
+    # self.P_pid.dt = self.dt 
+    # self.Y_pid.dt = self.dt 
+    # self.Vx_pid.dt = self.dt
+    # self.Vy_pid.dt = self.dt
+    # self.Vz_pid.dt = self.dt
+    # self.Px_pid.dt = self.dt
+    # self.Py_pid.dt = self.dt
+    # self.Pz_pid.dt = self.dt
 
 
   def set_reference(self, P, V, R, Euler, Wb, Euler_rate, mode):

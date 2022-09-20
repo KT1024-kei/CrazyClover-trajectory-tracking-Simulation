@@ -29,7 +29,7 @@ class Controllers():
 
     self.gravity_calcel = 9.8
     self.rad2deg = 180/np.pi
-    
+
   def select_controller(self):
 
     if self.controller_mode == "pid":
@@ -39,6 +39,7 @@ class Controllers():
       self.set_state = self.pid_controller.set_state
       self.init_controller = self.pid_controller.pid_init
       self.log = self.pid_controller.log_nom
+      self.set_dt = self.pid_controller.set_dt
 
     elif self.controller_mode == "mellinger":
       self.controller = self.mellinger_controller
@@ -48,6 +49,7 @@ class Controllers():
       self.set_reference = self.mellinger_controller.set_reference
       self.stop_tracking = self.mellinger_controller.stop_tracking
       self.log = self.mellinger_controller.log_nom
+      self.set_dt = self.mellinger_controller.set_dt
   
   def switch_controller(self, controller_type):
 
@@ -59,6 +61,7 @@ class Controllers():
       self.set_state = self.pid_controller.set_state
       self.init_controller = self.pid_controller.pid_init
       self.log = self.pid_controller.log_nom
+      self.set_dt = self.pid_controller.set_dt
 
     elif controller_type == "mellinger":
       self.mellinger_controller = Mellinger(self.dt)
@@ -69,6 +72,7 @@ class Controllers():
       self.set_reference = self.mellinger_controller.set_reference
       self.stop_tracking = self.mellinger_controller.stop_tracking
       self.log = self.mellinger_controller.log_nom
+      self.set_dt = self.mellinger_controller.set_dt
 
     self.init_controller()
   
