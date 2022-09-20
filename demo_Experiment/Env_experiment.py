@@ -68,7 +68,9 @@ class Env_Experiment(Mathfunction):
         elif controller_type == "mellinger":
             controller.set_reference(traj)
         
-
+    def set_dt(self, dt):
+        self.dt = dt
+        
     def update_state(self, drone):
         
         self.P          =     drone.P.now
