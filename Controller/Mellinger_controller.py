@@ -21,18 +21,20 @@ class Mellinger(Mathfunction):
     self.Euler_rate_nom = np.array([0.0, 0.0, 0.0])
     self.traj_W = np.zeros(3)
 
+    self.input_acc = 0.0
+    self.input_Wb = np.zeros(3)
+
   def set_reference(self, traj_plan):
     self.trajectory = Trajectory(traj_plan)
     self.rad2deg = 180.0/np.pi
 
-  def set_state(self, P, V, R, Euler, Wb, Euler_rate):
+  def set_state(self, P, V, R, Euler):
 
     self.P = P
     self.V = V
     self.R = R
     self.Euler = Euler
-    self.Wb = Wb
-    self.Euler_rate = Euler_rate
+
   
   def Position_controller(self):
 
@@ -99,7 +101,7 @@ class Mellinger(Mathfunction):
     self.set_reference("stop")
 
   def log_nom(self, log, t):
-    log.write_nom(t=t, P=self.trajectory.traj_pos, V=self.trajectory.traj_vel, Euler=self.Euler_nom, Wb=self.traj_W, Euler_rate=self.Euler_rate_nom)
+    log.write_nom(t=t, input_acc=self.input_acc, input_Wb=self.input_Wb, P=self.trajectory.traj_pos, V=self.trajectory.traj_vel, Euler=self.Euler_nom, Wb=self.traj_W, Euler_rate=self.Euler_rate_nom)
 
     
 

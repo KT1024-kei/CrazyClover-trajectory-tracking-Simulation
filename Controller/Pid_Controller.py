@@ -8,8 +8,7 @@ from tools.Mathfunction import Mathfunction
 
 class Pid_Controller(Mathfunction):
 
-  def __init__(self,  dt, mode):
-
+  def __init__(self, dt, mode):
       self.mode = mode
       self.dt = dt
       self.input_thrust_gf = 0.0
@@ -20,6 +19,9 @@ class Pid_Controller(Mathfunction):
 
       self.gravity_calcel = 9.8
       self.rad2deg = 180/np.pi
+
+      self.input_acc = 0.0
+      self.input_Wb = np.zeros(3)
 
   def pid_init(self):
       self.R_pid = PID(15.0, 5.0, 0.0, self.dt)
@@ -34,15 +36,13 @@ class Pid_Controller(Mathfunction):
       self.Py_pid = PID(1.0, 0.0, 0.0, self.dt)
       self.Pz_pid = PID(1.0, 0.0, 0.0, self.dt)
 
-  def set_state(self, P, V, R, Euler, Wb, Euler_rate):
+  def set_state(self, P, V, R, Euler):
       
     # print("set references")
     self.P = P
     self.V = V
     self.R = R
     self.Euler = Euler
-    self.Wb = Wb
-    self.Euler_rate = Euler_rate
 
     self.Px_pid.state = P[0]
     self.Py_pid.state = P[1]
@@ -136,4 +136,4 @@ class Pid_Controller(Mathfunction):
     self.controller_velocity_pid()
 
   def log_nom(self, log, t):
-    pass
+    log.write_nom(t=t, input_acc=self.input_acc, input_Wb=self.input_Wb, P=self.Pref, V=self.Vref, Euler=self.Eulerref, Wb=self.Wbref, Euler_rate=self.Euler_rateref)
