@@ -35,11 +35,11 @@ class Simulation(Mathfunction):
           self.ctrls[i] = Controllers(dt, controller_type)
           self.ctrls[i].select_controller()
           self.ctrls[i].init_controller()
-          self.initialize_state(drone=self.drones[i])
+          self.init_state(drone=self.drones[i])
           self.set_reference(controller=self.ctrls[i], controller_type=controller_type, command="hovering")
         
 
-    def initialize_state(self, drone = 0, 
+    def init_state(self, drone = 0, 
                                 P=np.array([0.0, 0.0, 0.0]),   
                                 V=np.array([0.0, 0.0, 0.0]), 
                                 R=np.array([[1.0, 0.0, 0.0],[0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]), 
@@ -48,9 +48,10 @@ class Simulation(Mathfunction):
                                 Euler_rate=np.array([0.0, 0.0, 0.0])):
 
         print("set Initial state")
-
+        self.M = drone.M
         drone.set_initial_state(P, V, R, Euler, Wb, Euler_rate, self.dt)
 
+# ------------------------------- ここまで　初期化関数 ---------------------
     def set_reference(self, controller,  
                             P=np.array([0.0, 0.0, 0.0]),   
                             V=np.array([0.0, 0.0, 0.0]), 
@@ -76,7 +77,7 @@ class Simulation(Mathfunction):
         
 
 
-    def state_step(self, drone):
+    def update_state(self, drone):
         
         self.P          =     drone.P.now
         self.V          =     drone.V.now
@@ -85,17 +86,18 @@ class Simulation(Mathfunction):
         self.Wb         =     drone.Wb.now
         self.Euler_rate =     drone.Euler_rate.now
         drone.Euler_rate.now[1] =  -drone.Euler_rate.now[1]
+        self.M = drone.M
         
 
     def state_step_flow(self, t, M):
 
         for i in range(self.num_drone):
-            self.state_step(self.drones[i])
-            self.logs[i].write_state(t=t, P=self.P, V=self.V, R=self.R, Euler=self.Euler, Wb=self.Wb, Euler_rate=self.Euler_rate*180/np.pi, M=M)
+            self.update_state(self.drones[i])
+            self.logs[i].write_state(t=t, P=self.P, V=self.V, R=self.R, Euler=self.Euler, Wb=self.Wb, Euler_rate=self.Euler_rate*180/np.pi, M=self.M)
     
     def controll_flow(self, t):
         for i in range(self.num_drone):
-            self.ctrls[i].set_state(P=self.P, V=self.V, R=self.R, Euler=self.Euler, Wb=self.Wb, Euler_rate=self.Euler_rate)
+            self.ctrls[i].set_state(P=self.P, V=self.V, R=self.R, Euler=self.Euler)
             self.ctrls[i].get_output(t)
             self.ctrls[i].log(self.logs[i], t)
 
@@ -157,7 +159,6 @@ class Simulation(Mathfunction):
     def circle_track_experiment(self):
         print("main function")
         t = 0.0
-        self.M = np.array([0.0, 0.0 ,0.0, 0.0])
         self.hovering()
         while self.T_exp > t:
             self.state_step_flow(t, self.M)
@@ -172,8 +173,4 @@ class Simulation(Mathfunction):
                 self.land()
         self.Log_flow()
 
-            
-    
-
-
-Simulation(25.0, 0.001, 1).circle_track_experiment()
+Simulation(25, 0.001, 1).circle_track_experiment()
