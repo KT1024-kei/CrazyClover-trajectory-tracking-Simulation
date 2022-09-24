@@ -27,13 +27,13 @@ class Pid_Controller(Mathfunction):
     self.dt = dt
 
   def pid_init(self):
-      self.R_pid = PID(15.0, 5.0, 0.0, self.dt)
-      self.P_pid = PID(15.0, 5.0, 0.0, self.dt)
-      self.Y_pid = PID(10.0, 3.0, 0.0, self.dt)
+      self.R_pid = PID(10.0, 1.0, 0.0, self.dt)
+      self.P_pid = PID(10.0, 1.0, 0.0, self.dt)
+      self.Y_pid = PID(1.0, 1.0, 0.0, self.dt)
 
       self.Vx_pid = PID(1.0, 0.0, 0.0, self.dt)
       self.Vy_pid = PID(1.0, 0.0, 0.0, self.dt)
-      self.Vz_pid = PID(10.0, 5.0, 0.0, self.dt)
+      self.Vz_pid = PID(10.0, 1.0, 0.0, self.dt)
 
       self.Px_pid = PID(1.0, 0.0, 0.0, self.dt)
       self.Py_pid = PID(1.0, 0.0, 0.0, self.dt)
@@ -144,11 +144,14 @@ class Pid_Controller(Mathfunction):
     self.Py_pid.runpid()
     self.Pz_pid.runpid()
 
-    self.Vx_pid.desired = self.Px_pid.output * cosY - self.Py_pid.output * sinY
-    self.Vy_pid.desired = self.Py_pid.output * cosY + self.Px_pid.output * sinY
+    self.Vx_pid.desired = self.Px_pid.output
+    self.Vy_pid.desired = self.Py_pid.output
     self.Vz_pid.desired = self.Pz_pid.output
 
     self.controller_velocity_pid()
 
   def log_nom(self, log, t):
-    log.write_nom(t=t, input_acc=self.input_acc, input_Wb=self.input_Wb, P=self.Pref, V=self.Vref, Euler=self.Eulerref, Wb=self.Wbref, Euler_rate=self.Euler_rateref)
+    log.write_nom(t=t, input_acc=self.input_acc, input_Wb=self.input_Wb, P=self.Pref, 
+                        V=np.array([self.Vx_pid.desired, self.Vy_pid.desired, self.Vz_pid.desired]), 
+                        Euler=np.array([self.R_pid.desired, self.P_pid.desired, self.Y_pid.desired]), 
+                        Wb=self.Wbref, Euler_rate=self.Euler_rateref)
