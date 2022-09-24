@@ -36,7 +36,7 @@ class Simulation(Mathfunction):
           self.ctrls[i].select_controller()
           self.ctrls[i].init_controller()
           self.init_state(drone=self.drones[i])
-          self.set_reference(controller=self.ctrls[i], controller_type=controller_type, command="hovering")
+          self.set_reference(controller=self.ctrls[i], controller_type=controller_type, command="none")
         
 
     def init_state(self, drone = 0, 
