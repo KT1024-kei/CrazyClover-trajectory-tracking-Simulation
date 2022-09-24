@@ -19,9 +19,9 @@ class Drone(Mathfunction):
 
     # Physical Parametor
     self.g = 9.8
-    self.mQ = 0.5
-    self.I = np.eye(3) * 10**(-3)
-    self.Arm_length = 0.5
+    self.mQ = 0.67
+    self.I = np.eye(3) * 10**(-2)
+    self.Arm_length = 0.15
     self.e3 = np.array([0, 0, 1.0])
     self.dt = dt
 
