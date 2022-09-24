@@ -14,14 +14,14 @@ class Controller_attituede_rate(Mathfunction):
     self.mQ = mQ
     self.g = 9.8
     # Euler angle rate PID
-    self.R_rate_pid = PID(1.0, 0.5, 0.0, dt)
-    self.P_rate_pid = PID(1.0, 0.5, 0.0, dt)
-    self.Y_rate_pid = PID(1.0, 0.5, 0.0, dt)
+    self.R_rate_pid = PID(5.0, 2, 0.0, dt)
+    self.P_rate_pid = PID(5.0, 2, 0.0, dt)
+    self.Y_rate_pid = PID(15.0, 5, 0.0, dt)
     
     # Body angle velocity PID
-    self.Wx_pid = PID(2.0, 5.0, 0.0, dt)
-    self.Wy_pid = PID(2.0, 5.0, 0.0, dt)
-    self.Wz_pid = PID(1.0, 0.5, 0.0, dt)
+    self.Wx_pid = PID(50.0, 20, 0.0, dt)
+    self.Wy_pid = PID(50.0, 20, 0.0, dt)
+    self.Wz_pid = PID(15.0, 5, 0.0, dt)
     
     self.M_gf = np.array([0.0, 0.0, 0.0])
     self.FM_pwm = np.array([0.0, 0.0, 0.0, 0.0])
@@ -53,7 +53,7 @@ class Controller_attituede_rate(Mathfunction):
     self.R_rate_pid.state = Euler_rate[0] * self.rad2deg
     self.P_rate_pid.state = -Euler_rate[1] * self.rad2deg
     self.Y_rate_pid.state = Euler_rate[2] * self.rad2deg
-
+  
   def inner_controller(self, F, Euler_rate_input):
     
     self.R_rate_pid.desired = Euler_rate_input[0]
@@ -118,16 +118,19 @@ class Controller_attituede_rate(Mathfunction):
 
     sign_m1 = np.sign(In_m1)
     self.MP_pwm[0] = sign_m1 * (np.sqrt(sign_m1*In_m1*8.309953163553529e-7+4.231999208818486e-6)*2.406752433662037e+6-4.951128620134714e+3)
+    # self.MP_pwm[0] = sign_m1 * (-1.0785e-5 * In_m1**4 + sign_m1* 0.0080 * In_m1**3 - 2.0815 * In_m1**2 +  306.7172*In_m1 + 1.7019e+03)
 
     sign_m2 = np.sign(In_m2)
     self.MP_pwm[1] = sign_m2 * (np.sqrt(sign_m2*In_m2*8.763965396891775e-7+4.838977432913171e-6)*2.282071995297151e+6-5.020028004430765e+3)
+    # self.MP_pwm[1] = sign_m2 * (-8.3705e-06 * In_m2**4 + sign_m2* 0.0066 * In_m2**3 - 1.8432 * In_m2**2 +  288.9068*In_m2 + 1.8032e+03)
 
     sign_m3 = np.sign(In_m3)
     self.MP_pwm[2] = sign_m3 * (np.sqrt(sign_m3*In_m3*8.464410710967024e-7+5.931205410463058e-6)*2.362834305061159e+6-5.75446231128539e+3)
-  
+    # self.MP_pwm[2] = sign_m3 * (-8.6533e-06 * In_m3**4 + sign_m3*  0.0068 * In_m3**3 -1.8811 * In_m3**2 + 290.2357*In_m3 + 1.8179e+03)
+
     sign_m4 = np.sign(In_m4)
     self.MP_pwm[3] = sign_m4 * (np.sqrt(sign_m4*In_m4*8.083914057959226e-7+5.805476588712849e-6)*2.474049062942287e+6-5.961111523577613e+3)
-    
+    # self.MP_pwm[3] = sign_m4 * (-9.6405e-06 * In_m4**4 + sign_m4* 0.0073 * In_m4**3 -1.9698 * In_m4**2 +  298.3715*In_m4 + 1.6579e+03)
 
     
     # print(In_m1, self.MP_pwm[0] )
