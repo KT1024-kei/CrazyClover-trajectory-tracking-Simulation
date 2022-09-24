@@ -33,6 +33,7 @@ class Env_Experiment(Mathfunction):
                                 Wb=np.array([0.0, 0.0, 0.0]), 
                                 Euler_rate=np.array([0.0, 0.0, 0.0])):
 
+        R = self.Euler2Rot(Euler)
         print("set Initial state")
         self.P          = P
         self.V          = V
