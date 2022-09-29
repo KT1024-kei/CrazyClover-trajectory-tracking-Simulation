@@ -27,13 +27,13 @@ class Pid_Controller(Mathfunction):
     self.dt = dt
 
   def pid_init(self):
-      self.R_pid = PID(10.0, 1.0, 0.0, self.dt)
-      self.P_pid = PID(10.0, 1.0, 0.0, self.dt)
-      self.Y_pid = PID(1.0, 1.0, 0.0, self.dt)
+      self.R_pid = PID(10.0, 2.5, 0.0, self.dt)
+      self.P_pid = PID(10.0, 2.5, 0.0, self.dt)
+      self.Y_pid = PID(10.0, 1.5, 0.0, self.dt)
 
       self.Vx_pid = PID(1.0, 0.0, 0.0, self.dt)
       self.Vy_pid = PID(1.0, 0.0, 0.0, self.dt)
-      self.Vz_pid = PID(10.0, 1.0, 0.0, self.dt)
+      self.Vz_pid = PID(3.0, 1.0, 0.0, self.dt)
 
       self.Px_pid = PID(1.0, 0.0, 0.0, self.dt)
       self.Py_pid = PID(1.0, 0.0, 0.0, self.dt)
