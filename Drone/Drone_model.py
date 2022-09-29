@@ -12,7 +12,7 @@ class Drone(Mathfunction):
     print("Initial DRONE model")
 
     self.set_parametor(dt)
-    self.inner_controller = Controller_attituede_rate(dt, self.mQ)
+    self.inner_controller = Controller_attituede_rate(dt, self.mQ, self.I)
     
   def set_parametor(self, dt):
     # print("Set Simulation and Physical parametor")
@@ -20,7 +20,7 @@ class Drone(Mathfunction):
     # Physical Parametor
     self.g = 9.8
     self.mQ = 0.67
-    self.I = np.eye(3) * 10**(-2)
+    self.I = np.array([[10**(-2) , 0.0, 0.0],[0.0, 10**(-2), 0.0], [0.0, 0.0, 10**(-1)]])
     self.Arm_length = 0.15
     self.e3 = np.array([0, 0, 1.0])
     self.dt = dt
