@@ -50,6 +50,7 @@ class Controllers():
       self.stop_tracking = self.mellinger_controller.stop_tracking
       self.log = self.mellinger_controller.log_nom
       self.set_dt = self.mellinger_controller.set_dt
+    self.init_controller()
   
   def switch_controller(self, controller_type):
 
