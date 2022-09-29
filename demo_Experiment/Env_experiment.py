@@ -55,8 +55,10 @@ class Env_Experiment(Mathfunction):
                             Euler_rate=np.array([0.0, 0.0, 0.0]),
                             traj="circle",
                             controller_type="pid",
-                            command = "hovering"):
-        controller.switch_controller(controller_type)
+                            command = "hovering",
+                            init_controller=True):
+        if init_controller:
+            controller.select_controller()
         if controller_type == "pid":
             if command =="hovering":
                 P = np.array([0.0, 0.0, 1.0])
@@ -97,14 +99,15 @@ class Env_Experiment(Mathfunction):
 
     @run_once
     def land(self, controller):
-        self.set_reference(controller=controller, command="land")
+        controller.switch_controller("pid")
+        self.set_reference(controller=controller, command="land", init_controller=True)
         
     @run_once
     def hovering(self, controller):
         self.set_reference(controller=controller, command="hovering")
 
-    def track_circle(self, controller):
-        self.set_reference(controller=controller, traj="circle", controller_type="mellinger")
+    def track_circle(self, controller, flag):
+        self.set_reference(controller=controller, traj="circle", controller_type="mellinger", init_controller=flag)
 
     def stop_track(self, controller):
-        self.set_reference(controller=controller, traj="stop", controller_type="mellinger")
+        self.set_reference(controller=controller, traj="stop", controller_type="mellinger", init_controller=False)
