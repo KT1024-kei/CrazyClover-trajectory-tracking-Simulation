@@ -7,7 +7,7 @@ from matplotlib.pyplot import flag
 sys.path.append('../')
 import time
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 from demo_Experiment.Env_experiment import Env_Experiment
 from Controller.Controllers import Controllers
@@ -36,8 +36,10 @@ def Experiment(Texp, Tsam, num_drone):
     for i in range(num_drone):
       cf[i] = Drone(Tsam)
       Drone_env[i].init_state(cf[i])
+      Drone_env[i].init_plot(None)
 
     t = 0
+    cnt = 0
     while True:
 
         # リアルな状態とノミナルな状態を記録
@@ -76,7 +78,13 @@ def Experiment(Texp, Tsam, num_drone):
         for i in range(num_drone):
             cf[i].main(Drone_ctrl[i].input_acc, Drone_ctrl[i].input_Wb)
 
-
+        for i in range(num_drone):
+            if cnt/100 == 1:
+                Drone_env[i].update_plot(cf[i].world_frame)
+                plt.pause(Tsam*100)
+                cnt = 0
+            cnt += 1
+        
         # 実験時間を管理
         if Env.time_check(t, Tsam, Texp+10): break
         t += Tsam
