@@ -132,7 +132,7 @@ class Env_Experiment(Mathfunction):
         self.set_reference(controller=controller, command="land", init_controller=True, P=self.land_P)
         
     @run_once
-    def hovering(self, controller, P):
+    def hovering(self, controller, P=np.array([0.0, 0.0, 1.0])):
         self.set_reference(controller=controller, command="hovering", P=P)
         self.land_P = np.array([0.0, 0.0, 0.1])
 
