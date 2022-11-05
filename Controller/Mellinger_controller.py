@@ -28,8 +28,10 @@ class Mellinger(Mathfunction):
     self.input_acc = 0.0
     self.input_Wb = np.zeros(3)
 
+    self.trajectory = Trajectory()
+
   def set_reference(self, traj_plan):
-    self.trajectory = Trajectory(traj_plan)
+    self.trajectory.set_traj_plan(traj_plan)
     self.rad2deg = 180.0/np.pi
 
   def set_state(self, P, V, R, Euler):
@@ -39,7 +41,6 @@ class Mellinger(Mathfunction):
     self.R = R
     self.Euler = Euler
 
-  
   def Position_controller(self):
 
     # set trajectory of each state
