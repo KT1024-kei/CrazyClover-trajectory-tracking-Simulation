@@ -1,7 +1,14 @@
 import numpy as np
 
 class Mathfunction():
-
+  # --------------- function related to derivative polynominal --------------
+  def time_polyder(self, t, k, order):
+      terms = np.zeros(order)
+      coeffs = np.polyder([1]*order,k)[::-1]
+      pows = t**np.arange(0,order-k,1)
+      terms[k:] = coeffs*pows
+      return terms
+  # --------------- Pysical math function ------------------
   def Vee(self, Vector):
     return np.array([[0, -Vector[2], Vector[1]], [Vector[2], 0, -Vector[0]], [-Vector[1], Vector[0], 0]])
 
@@ -64,7 +71,7 @@ class Mathfunction():
                     [0,0,1]))
     
     return np.array(R3*R2*R1)
-  
+
 class RowPath_Filter():
   
   def Init_LowPass2D(self, fc): # cut off frecency, sampling rate
