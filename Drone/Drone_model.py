@@ -22,11 +22,18 @@ class Drone(Mathfunction):
     self.mQ = 0.67
     self.I = np.array([[10**(-2) , 0.0, 0.0],[0.0, 10**(-2), 0.0], [0.0, 0.0, 10**(-1)]])
     self.Arm_length = 0.15
+    self.Hegiht = 0.05
     self.e3 = np.array([0, 0, 1.0])
     self.dt = dt
 
     self.CM_MP2FM  = np.array([[1.0, 1.0, 1.0, 1.0], [-1.0, -1.0, 1.0, 1.0], [-1.0, 1.0, 1.0, -1.0], [1.0, -1.0, 1.0, -1.0]])
     self.M = np.zeros(4)
+    self.body_frame = np.array([(self.Arm_length, 0, 0, 1),
+                       (0, self.Arm_length, 0, 1),
+                       (-self.Arm_length, 0, 0, 1),
+                       (0, -self.Arm_length, 0, 1),
+                       (0, 0, 0, 1),
+                       (0, 0, self.Hegiht, 1)])
  
   def set_initial_state(self, P, V, R, Euler, Wb, Euler_rate, dt):
     # print("set references")
@@ -34,7 +41,7 @@ class Drone(Mathfunction):
     self.V = State(dt, V)
     self.R = State(dt, R)
     self.Euler = State(dt, Euler)
-    self.Wb = State(dt, Wb)
+    self.Wb = State(dt, Wb) # Omega
     self.Euler_rate = State(dt, Euler_rate)
   
   def update_state(self, acc, Omega_acc):
@@ -46,6 +53,10 @@ class Drone(Mathfunction):
     self.Euler_rate.pre[1] = -self.Euler_rate.pre[1]
     self.Euler.integration(self.Euler_rate.pre)
     self.R.integration(np.matmul(self.R.now, self.Vee(self.Wb.pre)))
+
+    wHb = np.r_[np.c_[self.R.now,self.P.now], np.array([[0, 0, 0, 1]])]
+    self.quadWorldFrame = wHb.dot(self.body_frame.T)
+    self.world_frame = self.quadWorldFrame[0:3]
 
     self.inner_controller.set_state(self.Wb.now, self.Euler_rate.now)
     # print(self.R.now)
