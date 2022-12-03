@@ -25,8 +25,8 @@ def Experiment(Texp, Tsam, num_drone):
     zero = np.zeros(3)
     for i in range(num_drone):
         Drone_env[i] = Env_Experiment(Texp, Tsam, i)
-        Drone_ctrl[i] = Controllers(Tsam, "pid")
-        Drone_env[i].hovering(Drone_ctrl[i], P=np.array([0.0, 0.0, 1.0]))
+        Drone_ctrl[i] = Controllers(Tsam, "mellinger")
+        Drone_env[i].takeoff(Drone_ctrl[i])
 
     cf = [0]*num_drone
     for i in range(num_drone):
@@ -36,10 +36,13 @@ def Experiment(Texp, Tsam, num_drone):
 
     t = 0
     cnt = 0
+    land_Flag = True
     while True:
 
         for i in range(num_drone):
-            Drone_env[i].take_log(t, Drone_ctrl[i])
+            Drone_env[i].set_clock(t)
+            Env.set_clock(t)
+            Drone_env[i].take_log(Drone_ctrl[i])
 
         for i in range(num_drone):
             Drone_env[i].update_state(cf[i])
@@ -53,22 +56,24 @@ def Experiment(Texp, Tsam, num_drone):
 
         if t > 10:
             for i in range(num_drone):
-              Drone_env[i].land(Drone_ctrl[i])
+                if land_Flag:
+                    Drone_env[i].land_track(Drone_ctrl[i])
+                    land_Flag = False
 
         for i in range(num_drone):
-            if cnt/100 == 1:
+            if cnt/10 == 1:
                 Drone_env[i].update_plot(cf[i].world_frame)
-                plt.pause(Tsam*100)
+                plt.pause(Tsam*10)
                 cnt = 0
             cnt += 1
 
-        if Env.time_check(t, Tsam, Texp): break
+        if Env.time_check(Tsam, Texp): break
         t += Tsam
     
     for i in range(num_drone):
         Drone_env[i].save_log()
 if __name__ == "__main__":
-  Experiment(15, 0.001, 1)
+  Experiment(20, 0.01, 1)
 
 
 

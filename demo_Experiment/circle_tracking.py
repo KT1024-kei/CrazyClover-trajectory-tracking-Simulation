@@ -25,12 +25,13 @@ def Experiment(Texp, Tsam, num_drone):
 
     circle_flag = True
     stop_flag = True
+    land_flag = True
 
     zero = np.zeros(3)
     for i in range(num_drone):
         Drone_env[i] = Env_Experiment(Texp, Tsam, i)
-        Drone_ctrl[i] = Controllers(Tsam, "pid")
-        Drone_env[i].hovering(Drone_ctrl[i])
+        Drone_ctrl[i] = Controllers(Tsam, "mellinger")
+        Drone_env[i].takeoff(Drone_ctrl[i])
 
     cf = [0]*num_drone
     for i in range(num_drone):
@@ -44,16 +45,18 @@ def Experiment(Texp, Tsam, num_drone):
 
         # リアルな状態とノミナルな状態を記録
         for i in range(num_drone):
-            Drone_env[i].take_log(t, Drone_ctrl[i])
+            Env.set_clock(t)
+            Drone_env[i].set_clock(t)
+            Drone_env[i].take_log(Drone_ctrl[i])
 
         # 状態を更新
         for i in range(num_drone):
             Drone_env[i].update_state(cf[i])
 
         # 5秒から15秒でコントローラを軌道追従に変更
-        if 5 < t < 15:
+        if 10 < t < Texp:
             if circle_flag:
-                Drone_ctrl[i].switch_controller("mellinger")
+                # Drone_ctrl[i].switch_controller("mellinger")
                 Drone_env[i].track_circle(Drone_ctrl[i], False)
                 circle_flag = False
 
@@ -66,7 +69,9 @@ def Experiment(Texp, Tsam, num_drone):
         # 実験終了5秒後に着陸
         if t > Texp+5:
             for i in range(num_drone):
-              Drone_env[i].land(Drone_ctrl[i])
+                if land_flag:
+                    Drone_env[i].land_track(Drone_ctrl[i])
+                    land_flag = False
 
         # 現在の状態をコントローラに渡して入力を計算
         for i in range(num_drone):
@@ -79,14 +84,14 @@ def Experiment(Texp, Tsam, num_drone):
             cf[i].main(Drone_ctrl[i].input_acc, Drone_ctrl[i].input_Wb)
 
         for i in range(num_drone):
-            if cnt/100 == 1:
+            if cnt/10 == 1:
                 Drone_env[i].update_plot(cf[i].world_frame)
-                plt.pause(Tsam*100)
+                plt.pause(Tsam*10)
                 cnt = 0
             cnt += 1
         
         # 実験時間を管理
-        if Env.time_check(t, Tsam, Texp+10): break
+        if Env.time_check(Tsam, Texp+15): break
         t += Tsam
 
     # ログデータを保存
@@ -94,7 +99,7 @@ def Experiment(Texp, Tsam, num_drone):
         Drone_env[i].save_log()
 
 if __name__ == "__main__":
-  Experiment(20, 0.001, 1)
+  Experiment(20, 0.01, 1)
 
 
 
