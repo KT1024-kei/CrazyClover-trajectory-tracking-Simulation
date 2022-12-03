@@ -24,7 +24,8 @@ class Env_Experiment(Mathfunction):
         # Experiment Parametor
         self.Tend = Texp
         self.dt = Tsam
-        self.num = num        
+        self.num = num
+        self.t = 0        
         
         self.log = Log_data(num)
 
@@ -46,21 +47,22 @@ class Env_Experiment(Mathfunction):
         self.Euler_rate = Euler_rate
         self.M = drone.M
 
+
         drone.set_initial_state(P, V, R, Euler, Wb, Euler_rate, self.dt)
 
     def init_plot(self,ax = None):
         if ax is None:
             fig = plt.figure()
             ax = Axes3D.Axes3D(fig)
-            ax.set_xlim((-2,2))
-            ax.set_ylim((-2,2))
+            ax.set_xlim((-6,8))
+            ax.set_ylim((-6,8))
             ax.set_zlim((0,2))
         ax.plot([], [], [], '-', c='red',zorder = 10)
         ax.plot([], [], [], '-', c='blue',zorder = 10)
         ax.plot([], [], [], '-', c='green', marker='o', markevery=2,zorder = 10)
         ax.plot([], [], [], '.', c='green', markersize=2,zorder = 10)
         self.lines = ax.get_lines()[-4:]
-        self.pos_history = deque(maxlen=100)
+        self.pos_history = deque(maxlen=200)
 
     def update_plot(self,frame):
 
@@ -77,6 +79,9 @@ class Env_Experiment(Mathfunction):
         self.lines[-1].set_3d_properties(history[:,-1])
 
 # ------------------------------- ここまで　初期化関数 ---------------------
+    def set_clock(self, t):
+        self.t = t
+
     def set_reference(self, controller,  
                             P=np.array([0.0, 0.0, 0.0]),   
                             V=np.array([0.0, 0.0, 0.0]), 
@@ -98,7 +103,7 @@ class Env_Experiment(Mathfunction):
             else:
                 controller.set_reference(P, V, R, Euler, Wb, Euler_rate, controller_type)
         elif controller_type == "mellinger":
-            controller.set_reference(traj)
+            controller.set_reference(traj, self.t)
         
     def set_dt(self, dt):
         self.dt = dt
@@ -114,15 +119,15 @@ class Env_Experiment(Mathfunction):
         drone.Euler_rate.now[1] =  -drone.Euler_rate.now[1]
         self.M = drone.M
 
-    def take_log(self, t, ctrl):
-        self.log.write_state(t, self.P, self.V, self.R, self.Euler, np.zeros(3), np.zeros(3), self.M)
-        ctrl.log(self.log, t)
+    def take_log(self, ctrl):
+        self.log.write_state(self.t, self.P, self.V, self.R, self.Euler, np.zeros(3), np.zeros(3), self.M)
+        ctrl.log(self.log, self.t)
         
     def save_log(self):
       self.log.close_file()
 
-    def time_check(self, t, Tint, Tend):
-        if t > Tend:
+    def time_check(self, Tint, Tend):
+        if self.t > Tend:
             return True
         return False
 
@@ -135,6 +140,13 @@ class Env_Experiment(Mathfunction):
     def hovering(self, controller, P=np.array([0.0, 0.0, 1.0])):
         self.set_reference(controller=controller, command="hovering", P=P)
         self.land_P = np.array([0.0, 0.0, 0.1])
+
+    def takeoff(self, controller):
+        self.set_reference(controller=controller, traj="takeoff", controller_type="mellinger")
+        self.land_P = np.array([0.0, 0.0, 0.1])
+
+    def land_track(self, controller):
+        self.set_reference(controller=controller, traj="land", controller_type="mellinger", init_controller=False)
 
     def track_circle(self, controller, flag):
         self.set_reference(controller=controller, traj="circle", controller_type="mellinger", init_controller=flag)

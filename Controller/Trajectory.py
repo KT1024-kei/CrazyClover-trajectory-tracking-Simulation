@@ -16,14 +16,27 @@ class Trajectory():
     self.traj_yaw = 0.0
     self.traj_yaw_rate = 0.0
 
+
+  def set_traj_plan(self, trajectory_plan):
+    self.trajectory_plan = trajectory_plan
+    self.set_poly_traj(trajectory_plan)
+    print(trajectory_plan)
+    
+  
   def set_clock(self, t):
     self.t = t
 
-  @run_once
+  # * polynominal trajectory planning
   def poly_traj_init(self, trajectory_plan):
-    # polynominal trajectory planning
+    print(trajectory_plan)
     if trajectory_plan == "straight":
       self.traj = pd.read_csv('/home/kato/lab_exp_desktop_crazyswarm/Simulation/CrazyClover/Controller/Trajectory segment parametors/traj_straight_4s.csv')
+    
+    elif trajectory_plan == "takeoff":
+      self.traj = pd.read_csv('/home/kato/lab_exp_desktop_crazyswarm/Simulation/CrazyClover/Controller/Trajectory segment parametors/traj_takeoff.csv')
+    
+    elif trajectory_plan == "land":
+      self.traj = pd.read_csv('/home/kato/lab_exp_desktop_crazyswarm/Simulation/CrazyClover/Controller/Trajectory segment parametors/traj_land.csv')
     
     self.len_seg = self.traj["N_segment"][0]
     self.segs_T = self.traj["Tseg"][0:self.len_seg]
@@ -35,13 +48,40 @@ class Trajectory():
     self.seg_now = 0
     self.T = 0
     self.Toffset = self.t
-    # print(self.Order)
 
-  def set_traj_plan(self, trajectory_plan):
-    self.trajectory_plan = trajectory_plan
-    print(trajectory_plan)
+  # * periodic trajectory tracking 
+  def poly_traj_periodic(self):
+    t = self.t
+    # print(sum(self.segs_T) + self.Toffset, t)
+    if sum(self.segs_T) + self.Toffset < t:
+      self.Toffset += sum(self.segs_T)
+      self.seg_now = 0
+      self.T = 0
+    if sum(self.segs_T[:self.seg_now+1])+self.Toffset < t:
+      self.T += self.segs_T[self.seg_now]
+      self.seg_now += 1
+    t -= (self.T + self.Toffset)
+    # print(t)
     
-  def poly_traj(self):
+    Xcoeff = self.Xcoeffs[self.seg_now*self.Order:(self.seg_now+1)*self.Order]
+    Ycoeff = self.Ycoeffs[self.seg_now*self.Order:(self.seg_now+1)*self.Order]
+    Zcoeff = self.Zcoeffs[self.seg_now*self.Order:(self.seg_now+1)*self.Order]
+    
+    poly_T0 = MF().time_polyder(t, 0, self.Order)
+    poly_T1 = MF().time_polyder(t, 1, self.Order)
+    poly_T2 = MF().time_polyder(t, 2, self.Order)
+    poly_T3 = MF().time_polyder(t, 3, self.Order)
+
+    self.traj_pos = np.array([np.dot(Xcoeff, poly_T0), np.dot(Ycoeff, poly_T0), np.dot(Zcoeff, poly_T0)])
+    self.traj_vel = np.array([np.dot(Xcoeff, poly_T1), np.dot(Ycoeff, poly_T1), np.dot(Zcoeff, poly_T1)])
+    self.traj_acc = np.array([np.dot(Xcoeff, poly_T2), np.dot(Ycoeff, poly_T2), np.dot(Zcoeff, poly_T2)]) + np.array([0.0 ,0.0, 9.8])
+    self.traj_jer = np.array([np.dot(Xcoeff, poly_T3), np.dot(Ycoeff, poly_T3), np.dot(Zcoeff, poly_T3)])
+
+    self.traj_yaw = 0.0
+    self.traj_yaw_rate = 0.0
+
+  # * non periodic trajectory tracking
+  def poly_traj_non_periodic(self):
     t = self.t
     # print(sum(self.segs_T) + self.Toffset, t)
     if sum(self.segs_T) + self.Toffset < t:
@@ -69,8 +109,9 @@ class Trajectory():
     self.traj_yaw = 0.0
     self.traj_yaw_rate = 0.0
 
+
   def traj_circle(self):
-    T = 10.0
+    T = 7.0
     A = 1.0
     w = 2*np.pi/T
     self.traj_pos[0] =  A*np.cos(w*self.t);      self.traj_pos[1] =  A*np.sin(w*self.t);      self.traj_pos[2] = 1.0
@@ -102,32 +143,19 @@ class Trajectory():
       self.stop_track()
 
     elif self.trajectory_plan == "straight":
-      
-      self.poly_traj_init("straight")
-      self.poly_traj()
-
-      
-
+      self.poly_traj_non_periodic()
+    
+    elif self.trajectory_plan == "takeoff":
+      self.poly_traj_non_periodic()
+    
+    elif self.trajectory_plan == "land":
+      self.poly_traj_non_periodic()
+  
+  def set_poly_traj(self, poly_traj):
+    self.poly_traj_init(poly_traj)
     
 
 
-  
-  # def Traj_pos(self, t):
-  #   self.pos_vel[0] =  self.A*np.cos(self.w*t)      
-  #   self.traj_pos[1] =  self.A*np.sin(self.w*t) 
-  #   self.traj_pos[2] = 0.0
-  
-  # def Traj_vel(self, t):
-  #   self.vel_vec[0] = -self.A*self.w*np.sin(self.w*t)    
-  #   self.vel_vec[1] =  self.A*self.w*np.cos(self.w*t)  
-  #   self.vel_vec[2] = 0.0
-  
-  # def Traj_acc(self, t):
-  #   self.acc_vec[0] = -self.A*self.w**2*np.cos(self.w*t) 
-  #   self.acc_vec[1] = -self.A*self.w**2*np.sin(self.w*t) 
-  #   self.acc_vec[2] = 9.8
 
-  # def Traj_jer(self, t):
-  #   self.jer_vec[0] =  self.A*self.w**3*np.sin(self.w*t) 
-  #   self.jer_vec[1] = -self.A*self.w**3*np.cos(self.w*t)
-  #   self.jer_vec[2] = 0.0
+    
+
