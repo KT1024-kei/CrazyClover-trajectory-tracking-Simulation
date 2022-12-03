@@ -16,8 +16,8 @@ class Mellinger(Mathfunction):
     print("Init Mellinger Controller")
 
     # init trajectory
-    self.kp = np.array([1.0, 1.0, 5.0])
-    self.kv = np.array([1.0, 1.0, 1.0])
+    self.kp = np.array([1.0, 1.0, 4.0])
+    self.kv = np.array([1.0, 1.0, 3.0])
     self.ka = np.array([0.0, 0.0, 0.0])
     self.kR = np.array([10.0, 10.0, 10.0])
 
@@ -30,7 +30,8 @@ class Mellinger(Mathfunction):
 
     self.trajectory = Trajectory()
 
-  def set_reference(self, traj_plan):
+  def set_reference(self, traj_plan, t):
+    self.trajectory.set_clock(t)
     self.trajectory.set_traj_plan(traj_plan)
     self.rad2deg = 180.0/np.pi
 

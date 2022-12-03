@@ -33,11 +33,11 @@ class Pid_Controller(Mathfunction):
 
       self.Vx_pid = PID(1.0, 0.0, 0.0, self.dt)
       self.Vy_pid = PID(1.0, 0.0, 0.0, self.dt)
-      self.Vz_pid = PID(3.0, 1.0, 0.0, self.dt)
+      self.Vz_pid = PID(4.0, 0.0, 0.0, self.dt)
 
       self.Px_pid = PID(1.0, 0.0, 0.0, self.dt)
       self.Py_pid = PID(1.0, 0.0, 0.0, self.dt)
-      self.Pz_pid = PID(1.0, 0.0, 0.0, self.dt)
+      self.Pz_pid = PID(3.0, 1., 0.0, self.dt)
 
   def set_state(self, P, V, R, Euler):
       
