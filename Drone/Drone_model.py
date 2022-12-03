@@ -19,8 +19,8 @@ class Drone(Mathfunction):
 
     # Physical Parametor
     self.g = 9.8
-    self.mQ = 0.67
-    self.I = np.array([[10**(-2) , 0.0, 0.0],[0.0, 10**(-2), 0.0], [0.0, 0.0, 10**(-1)]])
+    self.mQ = 0.558
+    self.I = np.array([[10**(-1) , 0.0, 0.0],[0.0, 10**(-1), 0.0], [0.0, 0.0, 10**(-1)]])
     self.Arm_length = 0.15
     self.Hegiht = 0.05
     self.e3 = np.array([0, 0, 1.0])
@@ -49,7 +49,7 @@ class Drone(Mathfunction):
     self.V.integration(acc)
     self.Wb.integration(Omega_acc)
     self.Euler_rate.update((self.BAV2EAR(self.Euler.now, self.Wb.now)))
-    self.P.integration(self.V.now)
+    self.P.integration(self.V.pre)
     self.Euler_rate.pre[1] = -self.Euler_rate.pre[1]
     self.Euler.integration(self.Euler_rate.pre)
     self.R.integration(np.matmul(self.R.now, self.Vee(self.Wb.pre)))
@@ -102,12 +102,12 @@ class Drone(Mathfunction):
 
   def Drone_Dynamics(self, F, M):
     # print("Calcurate Drone motion")
-    M[0:2] = M[0:2] * self.Arm_length/(2.0*np.sqrt(2))
+    # M[0:2] = M[0:2] * self.Arm_length/(2.0*np.sqrt(2))
     # M[0] = 0
     # M[1] = 0
     # M[2] = 0
 
-    acc = (self.g*F*np.matmul(self.R.now, self.e3)/(self.mQ*1000.0) - self.g*self.e3)
+    acc = (F*np.matmul(self.R.now, self.e3)/(self.mQ) - self.g*self.e3)
     Omega_acc = np.matmul(np.linalg.inv(self.I), (M - np.cross(self.Wb.now, np.matmul(self.I, self.Wb.now))))
     return acc, Omega_acc
 
@@ -120,22 +120,29 @@ class Drone(Mathfunction):
 
     Out_m = np.zeros(4)
 
-    m1_map = np.array([2.077e-07, 0.0021, 0.0])
-    m2_map = np.array([2.1910e-07, 0.0022, 0.0])
-    m3_map = np.array([2.1161e-07, 0.0024, 0.0])
-    m4_map = np.array([2.0210e-07, 0.0024, 0.0])
+    m1_map = np.array([2.1866e-09, 2.5864e-05, -0.0699]) # np.array([2.077e-07, 0.0021, 0.0])
+    m2_map = np.array([1.9461e-09, 2.5622e-05, -0.0648]) # np.array([2.1910e-07, 0.0022, 0.0])
+    m3_map = np.array([2.0772e-09, 2.3301e-05, -0.0495]) # np.array([2.1161e-07, 0.0024, 0.0])
+    m4_map = np.array([1.8948e-09, 3.1570e-05, -0.0759]) #  np.array([2.0210e-07, 0.0024, 0.0])
+
+    m1_map_torque = np.array([2.5150e-11, 3.9841e-07, -8.5201e-04])
+    m2_map_torque = np.array([2.0893e-11, 3.9322e-07, -7.8045e-04])
+    m3_map_torque = np.array([2.8182e-11, 3.5346e-07, -7.2414e-04])
+    m4_map_torque = np.array([2.1372e-11, 4.9849e-07, -0.0011])
     
     sign_m1 = np.sign(In_m1)
-    Out_m[0] = sign_m1 * np.dot(m1_map, np.array([In_m1**2, sign_m1*np.abs(In_m1), 0.0]))
+    Out_m[0] = sign_m1 * np.dot(m1_map, np.array([In_m1**2, sign_m1*np.abs(In_m1), 1.0])) + sign_m1 * np.dot(m1_map_torque, np.array([In_m1**2, sign_m1*np.abs(In_m1), 1.0]))
 
     sign_m2 = np.sign(In_m2)
-    Out_m[1] = sign_m2 * np.dot(m2_map, np.array([In_m2**2, sign_m2*np.abs(In_m2), 0.0]))
+    Out_m[1] = sign_m2 * np.dot(m2_map, np.array([In_m2**2, sign_m2*np.abs(In_m2), 1.0])) + sign_m2 * np.dot(m2_map_torque, np.array([In_m2**2, sign_m2*np.abs(In_m2), 1.0]))
 
     sign_m3 = np.sign(In_m3)
-    Out_m[2] = sign_m3 * np.dot(m3_map, np.array([In_m3**2, sign_m3*np.abs(In_m3), 0.0]))
+    Out_m[2] = sign_m3 * np.dot(m3_map, np.array([In_m3**2, sign_m3*np.abs(In_m3), 1.0])) + sign_m3 * np.dot(m3_map_torque, np.array([In_m3**2, sign_m3*np.abs(In_m3), 1.0]))
 
     sign_m4 = np.sign(In_m4)
-    Out_m[3] = sign_m4 * np.dot(m4_map, np.array([In_m4**2, sign_m4*np.abs(In_m4), 0.0]))
+    Out_m[3] = sign_m4 * np.dot(m4_map, np.array([In_m4**2, sign_m4*np.abs(In_m4), 1.0])) + sign_m4 * np.dot(m4_map_torque, np.array([In_m4**2, sign_m4*np.abs(In_m4), 1.0]))
+
+
 
     return Out_m
 
@@ -150,7 +157,13 @@ class Drone(Mathfunction):
     # print(M_gf)
     self.F_and_M = self.MP2FM(M_gf)
     # print(self.F_and_M[1:])
+    # print(self.F_and_M[1:], self.inner_controller.M_gf)
     acc, Wb_acc = self.Drone_Dynamics(self.F_and_M[0], self.F_and_M[1:])
     self.update_state(acc,  Wb_acc)
 
     return acc, Wb_acc
+
+
+'''
+vel += np.array([2.0*np.cos(2*np.pi*t/10), 1.0*np.sin(2*np.pi*t/10), 0.0])
+'''

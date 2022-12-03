@@ -20,9 +20,9 @@ class Controller_attituede_rate(Mathfunction):
     self.Y_rate_pid = PID(15.0, 5, 0.0, dt, 1.5)
     
     # Body angle velocity PID
-    self.Wx_pid = PID(50.0, 30, 0.0, dt, 1.5)
-    self.Wy_pid = PID(50.0, 30, 0.0, dt, 1.5)
-    self.Wz_pid = PID(3, 0, 0.0, dt)
+    self.Wx_pid = PID(2.0, 0, 0.0, dt, 1.5)
+    self.Wy_pid = PID(2.0, 0, 0.0, dt, 1.5)
+    self.Wz_pid = PID(0.5, 0, 0.0, dt)
     
     self.M_gf = np.array([0.0, 0.0, 0.0])
     self.FM_pwm = np.array([0.0, 0.0, 0.0, 0.0])
@@ -34,10 +34,10 @@ class Controller_attituede_rate(Mathfunction):
     self.deg2rad = np.pi/180.0
 
     # Controll Matrix
-    KT = self.mQ/(self.g*4)*1000.0
-    KR = 1.0/4
-    KP = 1.0/4
-    KY = 1.0/4
+    KT = self.mQ/4
+    KR = np.sqrt(2)*I[1, 1]/0.15/4
+    KP = np.sqrt(2)*I[0, 0]/0.15/4
+    KY = I[2, 2]/4
     self.FM2MP_map  = np.array([[KT, KT, KT, KT], [-KR, -KR, KR, KR], [-KP, KP, KP, -KP], [-KY, KY, -KY, KY]]).T
     self.MP2FM_map = np.array([[1.0, 1.0, 1.0, 1.0], [-1.0, -1.0, 1.0, 1.0], [-1.0, 1.0, 1.0, -1.0], [-1.0, 1.0, -1.0, 1.0]])
 
@@ -68,7 +68,7 @@ class Controller_attituede_rate(Mathfunction):
     # print("C",self.MP_gf)
     # print(self.M_gf)
 
-  def inner_controller2(self, F, Wb):
+  def inner_controller2(self, acc, Wb):
     
     # set desired angular velocity
     self.Wx_pid.desired = Wb[0]
@@ -76,7 +76,7 @@ class Controller_attituede_rate(Mathfunction):
     self.Wz_pid.desired = Wb[2]
 
     self.controll_attitude_rate2()
-    self.FM2MP(F)
+    self.FM2MP(acc)
     self.MM_gf2pwm()
     # self.MM_gf2pwm2(F)
     # print("C",self.MP_gf)
@@ -107,11 +107,8 @@ class Controller_attituede_rate(Mathfunction):
 
   def FM2MP(self, F):
     
-    # ToDo
-    # 推力トルクのコントロールマトリックス関数を作る
-
-    self.M_gf[2] = self.M_gf[2]*(10**(-3))
-    self.MP_gf = np.matmul(self.FM2MP_map, np.array([F, self.M_gf[0], self.M_gf[1], 0.0])) # Thrust, Roll, Pitch
+    self.MP_gf_TRP = np.matmul(self.FM2MP_map, np.array([F, self.M_gf[0], self.M_gf[1], 0.0])) # Thrust, Roll, Pitch
+    self.MP_gf_Y = np.matmul(self.FM2MP_map, np.array([0.0, 0.0, 0.0, self.M_gf[2]])) # Yaw
 
   def MM_gf2pwm(self):
     # print("Moter map: gF -> PWM ")
@@ -119,31 +116,31 @@ class Controller_attituede_rate(Mathfunction):
     # ToDo 
     # モータの推力とトルクのマップ関数を作る　f1_thrust f2_thrust f3_thrust f4_thrust f1_torpue f2_torpue f3_torpue f4_torpue
 
-    In_m1 = self.MP_gf[0]
-    In_m2 = self.MP_gf[1]
-    In_m3 = self.MP_gf[2]
-    In_m4 = self.MP_gf[3]
+    In_m1 = self.MP_gf_TRP[0]
+    In_m2 = self.MP_gf_TRP[1]
+    In_m3 = self.MP_gf_TRP[2]
+    In_m4 = self.MP_gf_TRP[3]
     
     sign_m1 = np.sign(In_m1)
-    self.MP_pwm[0] = sign_m1 * (np.sqrt(sign_m1*In_m1*8.309953163553529e-7+8.77420076969215e-6)*2.406752433662037e+6-4.951128620134714e+3)
+    self.MP_pwm[0] = sign_m1 * (np.sqrt(sign_m1*In_m1*8.746454211812262e-9+1.280608521387491e-9)*2.28664090792239e+8-5.914182129481692e+3)
     # self.MP_pwm[0] = sign_m1 * (-1.0785e-5 * In_m1**4 + sign_m1* 0.0080 * In_m1**3 - 2.0815 * In_m1**2 +  306.7172*In_m1 + 1.7019e+03)
 
     sign_m2 = np.sign(In_m2)
-    self.MP_pwm[1] = sign_m2 * (np.sqrt(sign_m2*In_m2*8.055163101622383e-7+7.721642422652054e-6)*2.482879582658211e+6-4.645633060543796e+3)
+    self.MP_pwm[1] = sign_m2 * (np.sqrt(sign_m2*In_m2*7.784387419895479e-9+1.160848849564822e-9)*2.56924519826488e+8-6.582814614736632e+3)
     # self.MP_pwm[1] = sign_m2 * (-8.3705e-06 * In_m2**4 + sign_m2* 0.0066 * In_m2**3 - 1.8432 * In_m2**2 +  288.9068*In_m2 + 1.8032e+03)
 
     sign_m3 = np.sign(In_m3)
-    self.MP_pwm[2] = sign_m3 * (np.sqrt(sign_m3*In_m3*8.464410710967024e-7+1.206468234853723e-5)*2.362834305061159e+6-5.75446231128539e+3)
+    self.MP_pwm[2] = sign_m3 * (np.sqrt(sign_m3*In_m3*8.308971069381441e-9+9.542541377640133e-10)*2.407036904208272e+8-5.608689869160311e+3)
     # self.MP_pwm[2] = sign_m3 * (-8.6533e-06 * In_m3**4 + sign_m3*  0.0068 * In_m3**3 -1.8811 * In_m3**2 + 290.2357*In_m3 + 1.8179e+03)
 
     sign_m4 = np.sign(In_m4)
-    self.MP_pwm[3] = sign_m4 * (np.sqrt(sign_m4*In_m4*7.319497424060322e-7+1.662606485139558e-5)*2.732428039971283e+6-8.884984149138812e+3)
+    self.MP_pwm[3] = sign_m4 * (np.sqrt(sign_m4*In_m4*7.579233605794426e-9+1.571593599291622e-9)*2.638789228598223e+8-8.330685304890129e+3)
     # self.MP_pwm[3] = sign_m4 * (-9.6405e-06 * In_m4**4 + sign_m4* 0.0073 * In_m4**3 -1.9698 * In_m4**2 +  298.3715*In_m4 + 1.6579e+03)
 
-    In_m1_torque = -0.25*(-self.M_gf[2])
-    In_m2_torque = 0.25*(-self.M_gf[2])
-    In_m3_torque = -0.25*(-self.M_gf[2])
-    In_m4_torque = 0.25*(-self.M_gf[2])
+    In_m1_torque = -self.MP_gf_Y[2]
+    In_m2_torque = self.MP_gf_Y[2]
+    In_m3_torque = -self.MP_gf_Y[2]
+    In_m4_torque = self.MP_gf_Y[2]
 
     sign_m1 = np.sign(In_m1_torque)
     # poly 4 map
