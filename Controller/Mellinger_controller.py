@@ -48,8 +48,12 @@ class Mellinger(Mathfunction):
     self.trajectory.set_clock(t)
     self.trajectory.set_traj_plan(traj_plan)
 
+    self.tmp_pos = np.zeros(3)
+    # * set takeoff position for polynominal land trajectory 
+    if traj_plan == "takeoff":
+      self.tmp_pos = tmp_P
     # * set landing position for polynominal land trajectory 
-    if traj_plan == "land":
+    elif traj_plan == "land":
       self.tmp_pos = tmp_P
     # * set stop position when stop tracking trajectory
     elif traj_plan == "stop":

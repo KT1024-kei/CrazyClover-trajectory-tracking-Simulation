@@ -53,9 +53,9 @@ class Env_Experiment(Mathfunction):
         if ax is None:
             fig = plt.figure()
             ax = Axes3D.Axes3D(fig)
-            ax.set_xlim((-6,8))
-            ax.set_ylim((-6,8))
-            ax.set_zlim((0,2))
+            ax.set_xlim((-2,2))
+            ax.set_ylim((-2,2))
+            ax.set_zlim((0,1.5))
         ax.plot([], [], [], '-', c='red',zorder = 10)
         ax.plot([], [], [], '-', c='blue',zorder = 10)
         ax.plot([], [], [], '-', c='green', marker='o', markevery=2,zorder = 10)
@@ -149,8 +149,8 @@ class Env_Experiment(Mathfunction):
         self.set_reference(controller=controller, command="hovering", P=P)
         self.land_P = np.array([0.0, 0.0, 0.1])
 
-    def takeoff(self, controller):
-        self.set_reference(controller=controller, traj="takeoff", controller_type="mellinger")
+    def takeoff(self, controller, Pinit=np.array([0.0, 0.0, 0.0])):
+        self.set_reference(controller=controller, traj="takeoff", controller_type="mellinger", tmp_P=Pinit)
         self.land_P = np.array([0.0, 0.0, 0.1])
 
     def land_track(self, controller):
