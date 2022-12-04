@@ -15,19 +15,22 @@ class Drone(Mathfunction):
     self.inner_controller = Controller_attituede_rate(dt, self.mQ, self.I)
     
   def set_parametor(self, dt):
-    # print("Set Simulation and Physical parametor")
 
-    # Physical Parametor
+    self.dt = dt
+    
+    # * set physical parametor
     self.g = 9.8
     self.mQ = 0.558
     self.I = np.array([[10**(-1) , 0.0, 0.0],[0.0, 10**(-1), 0.0], [0.0, 0.0, 10**(-1)]])
     self.Arm_length = 0.15
     self.Hegiht = 0.05
     self.e3 = np.array([0, 0, 1.0])
-    self.dt = dt
-
+    
+    # * set parametor to destributre motor from input command
     self.CM_MP2FM  = np.array([[1.0, 1.0, 1.0, 1.0], [-1.0, -1.0, 1.0, 1.0], [-1.0, 1.0, 1.0, -1.0], [1.0, -1.0, 1.0, -1.0]])
     self.M = np.zeros(4)
+
+    # * parametor to plot quadtoror
     self.body_frame = np.array([(self.Arm_length, 0, 0, 1),
                        (0, self.Arm_length, 0, 1),
                        (-self.Arm_length, 0, 0, 1),
@@ -36,16 +39,17 @@ class Drone(Mathfunction):
                        (0, 0, self.Hegiht, 1)])
  
   def set_initial_state(self, P, V, R, Euler, Wb, Euler_rate, dt):
-    # print("set references")
+    
     self.P = State(dt, P)
     self.V = State(dt, V)
     self.R = State(dt, R)
     self.Euler = State(dt, Euler)
-    self.Wb = State(dt, Wb) # Omega
+    self.Wb = State(dt, Wb) 
     self.Euler_rate = State(dt, Euler_rate)
   
+  # ! integrate quadrotor states
   def update_state(self, acc, Omega_acc):
-    # print("update phsycal state")
+    
     self.V.integration(acc)
     self.Wb.integration(Omega_acc)
     self.Euler_rate.update((self.BAV2EAR(self.Euler.now, self.Wb.now)))
@@ -59,60 +63,40 @@ class Drone(Mathfunction):
     self.world_frame = self.quadWorldFrame[0:3]
 
     self.inner_controller.set_state(self.Wb.now, self.Euler_rate.now)
-    # print(self.R.now)
-
-    
+  
+  # ! convert Motor power to Force and Moment
   def MP2FM(self, Moter_Power):
-    # print("Input Thrust[gF] and Euler rate[rad/s]")
 
     return np.matmul(self.CM_MP2FM, Moter_Power)
 
+  # ! calculate input PWM from inner controller 
   def get_input_acc_and_Wb(self, acc, Wb):
 
-    self.inner_controller.inner_controller2(acc, Wb)
+    self.inner_controller.inner_controller_Body(acc, Wb)
     return self.inner_controller.MP_pwm
 
-  def Power_destribution_stock(self, T, Eulerrate):
-    # print("Destribute Power to each Moter")
-
-    Moter_Power = np.zeros(4)
-    r = Eulerrate[0]/2.0
-    p = Eulerrate[1]/2.0
-    y = Eulerrate[2]
-
-    Moter_Power[0] = self.saturation(T - r + p + y, 35000.0, 0.0)
-    Moter_Power[1] = self.saturation(T - r - p - y, 35000.0, 0.0)
-    Moter_Power[2] = self.saturation(T + r - p + y, 35000.0, 0.0)
-    Moter_Power[3] = self.saturation(T + r + p - y, 35000.0, 0.0)
-    # print(Moter_Power)
-    return Moter_Power
-
-  def Power_destribution_stock2(self, IN_Moter_Power):
-      # print("Destribute Power to each Moter")
+  # ! satureate each motor power
+  def Power_destribution_stock(self, IN_Moter_Power):
 
       Moter_Power = np.zeros(4)
-
 
       Moter_Power[0] = self.saturation(IN_Moter_Power[0], 35000.0, 0.0)
       Moter_Power[1] = self.saturation(IN_Moter_Power[1], 35000.0, 0.0)
       Moter_Power[2] = self.saturation(IN_Moter_Power[2], 35000.0, 0.0)
       Moter_Power[3] = self.saturation(IN_Moter_Power[3], 35000.0, 0.0)
-      # print(Moter_Power)
+      
       return Moter_Power
 
+  # ! calculate output acceleration for drone motion from input
   def Drone_Dynamics(self, F, M):
-    # print("Calcurate Drone motion")
-    # M[0:2] = M[0:2] * self.Arm_length/(2.0*np.sqrt(2))
-    # M[0] = 0
-    # M[1] = 0
-    # M[2] = 0
-
+    
     acc = (F*np.matmul(self.R.now, self.e3)/(self.mQ) - self.g*self.e3)
     Omega_acc = np.matmul(np.linalg.inv(self.I), (M - np.cross(self.Wb.now, np.matmul(self.I, self.Wb.now))))
     return acc, Omega_acc
 
-  def MM_pwm2gf(self, moter):
-    # print("Moter map: PWM -> gF ")
+  # ! calculate pwn motor power from Froce and Torque [Newton]
+  def MM_pwm2N(self, moter):
+
     In_m1 = moter[0]
     In_m2 = moter[1]
     In_m3 = moter[2]
@@ -120,6 +104,7 @@ class Drone(Mathfunction):
 
     Out_m = np.zeros(4)
 
+    # * coefficient of pwm-F 2D-curve (Force and Torque)
     m1_map = np.array([2.1866e-09, 2.5864e-05, -0.0699]) # np.array([2.077e-07, 0.0021, 0.0])
     m2_map = np.array([1.9461e-09, 2.5622e-05, -0.0648]) # np.array([2.1910e-07, 0.0022, 0.0])
     m3_map = np.array([2.0772e-09, 2.3301e-05, -0.0495]) # np.array([2.1161e-07, 0.0024, 0.0])
@@ -142,28 +127,16 @@ class Drone(Mathfunction):
     sign_m4 = np.sign(In_m4)
     Out_m[3] = sign_m4 * np.dot(m4_map, np.array([In_m4**2, sign_m4*np.abs(In_m4), 1.0])) + sign_m4 * np.dot(m4_map_torque, np.array([In_m4**2, sign_m4*np.abs(In_m4), 1.0]))
 
-
-
     return Out_m
 
+  # ! execute drone motion flow
   def main(self, acc, Wb):
 
     self.M = self.get_input_acc_and_Wb(acc, Wb)
-
-    # M_pwm = self.Power_destribution_stock(Thrust, Euelr_rate)
-    M_pwm = self.Power_destribution_stock2(self.M)
-    # print('C', M_pwm)
-    M_gf = self.MM_pwm2gf(M_pwm)
-    # print(M_gf)
+    M_pwm = self.Power_destribution_stock(self.M)    
+    M_gf = self.MM_pwm2N(M_pwm)
     self.F_and_M = self.MP2FM(M_gf)
-    # print(self.F_and_M[1:])
-    # print(self.F_and_M[1:], self.inner_controller.M_gf)
     acc, Wb_acc = self.Drone_Dynamics(self.F_and_M[0], self.F_and_M[1:])
     self.update_state(acc,  Wb_acc)
 
     return acc, Wb_acc
-
-
-'''
-vel += np.array([2.0*np.cos(2*np.pi*t/10), 1.0*np.sin(2*np.pi*t/10), 0.0])
-'''

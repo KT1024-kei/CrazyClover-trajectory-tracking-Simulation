@@ -1,14 +1,17 @@
 import numpy as np
 
 class Mathfunction():
-  # --------------- function related to derivative polynominal --------------
+
+  # ! derivative polynominal function
   def time_polyder(self, t, k, order):
       terms = np.zeros(order)
       coeffs = np.polyder([1]*order,k)[::-1]
       pows = t**np.arange(0,order-k,1)
       terms[k:] = coeffs*pows
       return terms
-  # --------------- Pysical math function ------------------
+
+  # ! =============== geometric math function ===============
+
   def Vee(self, Vector):
     return np.array([[0, -Vector[2], Vector[1]], [Vector[2], 0, -Vector[0]], [-Vector[1], Vector[0], 0]])
 
@@ -19,7 +22,7 @@ class Mathfunction():
 
     return max(min(param, UP_limit), LOW_limit)
   
-  # Body angular velocity to Euler angle rate
+  # !  Body angular velocity to Euler angle rate
   def BAV2EAR(self, Euler, Wb): 
     r = Euler[0]
     p = Euler[1]
@@ -31,12 +34,10 @@ class Mathfunction():
     Euler_angle_rate = np.matmul(np.linalg.inv(np.array([[1.0, 0.0, -sinP],
                                         [0.0, cosR,  cosP * sinR],
                                         [0.0, -sinR, cosP * cosR]])) , Wb)
-    # Euler_angle_rate = np.matmul(np.array([[cosR, sinR, 0.0],
-    #                                       [-cosP*sinR, cosP*cosR, 0.0],
-    #                                       [sinP*cosR, sinP*sinR, cosP]])/cosP, Wb)
-  
+
     return Euler_angle_rate
 
+  # ! Euler angle rate to Body angular velosity
   def EAR2BAV(self, Euler, Euler_rate):
     r = Euler[0]
     p = Euler[1]
@@ -51,8 +52,9 @@ class Mathfunction():
     
     return Wb
   
+  # ! Euler vector to Rotation matrix
   def Euler2Rot(self, Euler):
-    print(Euler)
+
     r = Euler[0]; p = Euler[1]; y = Euler[2]
     cosR = np.cos(r); sinR = np.sin(r)
     cosP = np.cos(p); sinP = np.sin(p)
@@ -72,15 +74,21 @@ class Mathfunction():
     
     return np.array(R3*R2*R1)
 
+# * Row Path Filter class
+
+# LINK https://www.earlevel.com/main/2003/03/02/the-bilinear-z-transform/
+# LINK https://en.wikipedia.org/wiki/Digital_biquad_filter
 class RowPath_Filter():
   
-  def Init_LowPass2D(self, fc): # cut off frecency, sampling rate
+  def Init_LowPass2D(self, fc):
     
+    # * set cutoff freqency
     self.fc = fc
     self.r0 = np.zeros(3)
     self.r1 = np.zeros(3)
     self.r2 = np.zeros(3)
 
+  # ! 2 order Low path filter
   def LowPass2D(self, V0, dt):
     fr = 1.0/(self.fc * dt)     
     omega = np.tan(np.pi/fr)

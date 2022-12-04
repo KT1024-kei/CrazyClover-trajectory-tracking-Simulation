@@ -3,18 +3,19 @@ sys.path.append('../')
 
 import numpy as np
 from tools.pid import PID
-# from Drone.Drone_model import Drone
 from tools.Mathfunction import Mathfunction
 
 class Controller_attituede_rate(Mathfunction):
 
   def __init__(self, dt, mQ, I):
-    print("initialize Attitude rate controller")
 
+    # * initialize model parametor
     self.mQ = mQ
     self.I = I
     self.g = 9.8
-    # Euler angle rate PID
+
+    # * initialize attitude rate pid conrtoller (Euler and Body angular velocity)
+    # Euler angle velocity PID
     self.R_rate_pid = PID(5.0, 2, 0.0, dt, 1.5)
     self.P_rate_pid = PID(5.0, 2, 0.0, dt, 1.5)
     self.Y_rate_pid = PID(15.0, 5, 0.0, dt, 1.5)
@@ -33,7 +34,7 @@ class Controller_attituede_rate(Mathfunction):
     self.rad2deg = 180.0/np.pi
     self.deg2rad = np.pi/180.0
 
-    # Controll Matrix
+    # * control matrix
     KT = self.mQ/4
     KR = np.sqrt(2)*I[1, 1]/0.15/4
     KP = np.sqrt(2)*I[0, 0]/0.15/4
@@ -43,7 +44,6 @@ class Controller_attituede_rate(Mathfunction):
 
   def set_state(self, Wb, Euler_rate):
       
-    # print("set references")
     self.Wb = Wb
     self.Euler_rate = Euler_rate
 
@@ -55,34 +55,19 @@ class Controller_attituede_rate(Mathfunction):
     self.P_rate_pid.state = -Euler_rate[1] * self.rad2deg
     self.Y_rate_pid.state = Euler_rate[2] * self.rad2deg
   
-  def inner_controller(self, F, Euler_rate_input):
+  # ! use Euler angle rate pid 
+  def inner_controller_Euler(self, F, Euler_rate_input):
     
     self.R_rate_pid.desired = Euler_rate_input[0]
     self.P_rate_pid.desired = Euler_rate_input[1]
     self.Y_rate_pid.desired = Euler_rate_input[2]
 
-    self.controll_attitude_rate()
+    self.controll_attitude_rate_Euler()
     self.FM2MP(F)
     self.MM_gf2pwm()
     self.MM_gf2pwm2(F)
-    # print("C",self.MP_gf)
-    # print(self.M_gf)
-
-  def inner_controller2(self, acc, Wb):
     
-    # set desired angular velocity
-    self.Wx_pid.desired = Wb[0]
-    self.Wy_pid.desired = Wb[1]
-    self.Wz_pid.desired = Wb[2]
-
-    self.controll_attitude_rate2()
-    self.FM2MP(acc)
-    self.MM_gf2pwm()
-    # self.MM_gf2pwm2(F)
-    # print("C",self.MP_gf)
-    # print(self.M_gf)
-
-  def controll_attitude_rate(self):
+  def controll_attitude_rate_Euler(self):
 
     self.R_rate_pid.runpid()
     self.P_rate_pid.runpid()
@@ -92,9 +77,18 @@ class Controller_attituede_rate(Mathfunction):
     self.M_gf[1] = self.P_rate_pid.output*self.deg2rad
     self.M_gf[2] = self.Y_rate_pid.output*self.deg2rad
 
-  def controll_attitude_rate2(self):
+  # ! use body angle velocity pid
+  def inner_controller_Body(self, acc, Wb):
+    
+    self.Wx_pid.desired = Wb[0]
+    self.Wy_pid.desired = Wb[1]
+    self.Wz_pid.desired = Wb[2]
 
-    # Wb = self.EAR2BAV(Euler, Euler_rate)
+    self.controll_attitude_rate_body()
+    self.FM2MP(acc)
+    self.MM_gf2pwm()
+
+  def controll_attitude_rate_body(self):
 
     self.Wx_pid.runpid()
     self.Wy_pid.runpid()
@@ -104,17 +98,16 @@ class Controller_attituede_rate(Mathfunction):
     self.M_gf[1] = self.Wy_pid.output
     self.M_gf[2] = self.Wz_pid.output
 
-
+  # ! convert Force and Moment into Motor Power [PWM]
   def FM2MP(self, F):
     
     self.MP_gf_TRP = np.matmul(self.FM2MP_map, np.array([F, self.M_gf[0], self.M_gf[1], 0.0])) # Thrust, Roll, Pitch
     self.MP_gf_Y = np.matmul(self.FM2MP_map, np.array([0.0, 0.0, 0.0, self.M_gf[2]])) # Yaw
 
+  # ! convert Motor Poewr Force into PWM
   def MM_gf2pwm(self):
-    # print("Moter map: gF -> PWM ")
-
-    # ToDo 
-    # モータの推力とトルクのマップ関数を作る　f1_thrust f2_thrust f3_thrust f4_thrust f1_torpue f2_torpue f3_torpue f4_torpue
+    
+    # ToDo モータの推力とトルクのマップ関数を作る　f1_thrust f2_thrust f3_thrust f4_thrust f1_torpue f2_torpue f3_torpue f4_torpue
 
     In_m1 = self.MP_gf_TRP[0]
     In_m2 = self.MP_gf_TRP[1]

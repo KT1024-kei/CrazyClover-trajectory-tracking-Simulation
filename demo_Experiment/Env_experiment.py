@@ -1,8 +1,6 @@
 #-*- coding: utf-8 -*-
 """
-tips 
-
-自作モジュールを読み込みたい時はsettingsのところでpython.analysis.extraPathsにパスを登録する
+There are usefull tools to do Experiment
 
 """
 import sys
@@ -19,9 +17,11 @@ from Drone.Drone_model import Drone, State
 from Controller.Controllers import Controllers
 
 class Env_Experiment(Mathfunction):
+
+# * ========================= Initialize part ============================ * 
     def __init__(self, Texp, Tsam, num):
 
-        # Experiment Parametor
+        # * Experiment parametor
         self.Tend = Texp
         self.dt = Tsam
         self.num = num
@@ -38,7 +38,6 @@ class Env_Experiment(Mathfunction):
                                 Euler_rate=np.array([0.0, 0.0, 0.0])):
 
         R = self.Euler2Rot(Euler)
-        print("set Initial state")
         self.P          = P
         self.V          = V
         self.Euler      = Euler
@@ -66,6 +65,7 @@ class Env_Experiment(Mathfunction):
 
     def update_plot(self,frame):
 
+        # * plot quadrotor bodies in frame
         lines_data = [frame[:,[0,2]], frame[:,[1,3]], frame[:,[4,5]]]
 
         for line, line_data in zip(self.lines[:3], lines_data):
@@ -78,7 +78,8 @@ class Env_Experiment(Mathfunction):
         self.lines[-1].set_data(history[:,0], history[:,1])
         self.lines[-1].set_3d_properties(history[:,-1])
 
-# ------------------------------- ここまで　初期化関数 ---------------------
+# * ==================================================================== * 
+
     def set_clock(self, t):
         self.t = t
 
@@ -92,9 +93,14 @@ class Env_Experiment(Mathfunction):
                             traj="circle",
                             controller_type="pid",
                             command = "hovering",
-                            init_controller=True):
+                            init_controller=True,
+                            tmp_P=np.zeros(3)): 
+
+        # * reinitialize controller
         if init_controller:
             controller.select_controller()
+        
+        # * set reference command to controller
         if controller_type == "pid":
             if command =="hovering":
                 controller.set_reference(P, V, R, Euler, Wb, Euler_rate, controller_type)    
@@ -103,7 +109,7 @@ class Env_Experiment(Mathfunction):
             else:
                 controller.set_reference(P, V, R, Euler, Wb, Euler_rate, controller_type)
         elif controller_type == "mellinger":
-            controller.set_reference(traj, self.t)
+            controller.set_reference(traj, self.t, tmp_P)
         
     def set_dt(self, dt):
         self.dt = dt
@@ -116,7 +122,7 @@ class Env_Experiment(Mathfunction):
         self.R          =     drone.R.now
         self.Wb         =     drone.Wb.now
         self.Euler_rate =     drone.Euler_rate.now
-        drone.Euler_rate.now[1] =  -drone.Euler_rate.now[1]
+        drone.Euler_rate.now[1] =  -drone.Euler_rate.now[1] # * inverse the pitch rate same as crazyflie
         self.M = drone.M
 
     def take_log(self, ctrl):
@@ -130,6 +136,8 @@ class Env_Experiment(Mathfunction):
         if self.t > Tend:
             return True
         return False
+
+# * ======================== controll commands ================================ *  
 
     @run_once
     def land(self, controller):
@@ -146,7 +154,7 @@ class Env_Experiment(Mathfunction):
         self.land_P = np.array([0.0, 0.0, 0.1])
 
     def land_track(self, controller):
-        self.set_reference(controller=controller, traj="land", controller_type="mellinger", init_controller=False)
+        self.set_reference(controller=controller, traj="land", controller_type="mellinger", init_controller=False, tmp_P=np.array([self.P[0], self.P[1], 0.0]))
 
     def track_circle(self, controller, flag):
         self.set_reference(controller=controller, traj="circle", controller_type="mellinger", init_controller=flag)
@@ -155,5 +163,5 @@ class Env_Experiment(Mathfunction):
         self.set_reference(controller=controller, traj="straight", controller_type="mellinger", init_controller=flag)
 
     def stop_track(self, controller):
-        self.set_reference(controller=controller, traj="stop", controller_type="mellinger", init_controller=False)
+        self.set_reference(controller=controller, traj="stop", controller_type="mellinger", init_controller=False, tmp_P=np.array([self.P[0], self.P[1], 1.0]))
         self.land_P[0:2] = self.P[0:2]

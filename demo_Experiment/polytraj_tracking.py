@@ -20,9 +20,6 @@ def Experiment(Texp, Tsam, num_drone):
     Drone_env = [0]*num_drone
     Drone_ctrl = [0]*num_drone
     Drone_log = [0]*num_drone
-    # swarm = Crazyswarm()
-    # timeHelper = swarm.timeHelper
-    # cf = swarm.allcfs.crazyflies
 
     circle_flag = True
     stop_flag = True

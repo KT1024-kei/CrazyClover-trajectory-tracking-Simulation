@@ -9,6 +9,8 @@ class Trajectory():
 
   def __init__(self):
     print("Init trajectory planning")
+
+    # * initialize trajectory states
     self.traj_pos = np.zeros(3)
     self.traj_vel = np.zeros(3)
     self.traj_acc = np.zeros(3)
@@ -16,19 +18,17 @@ class Trajectory():
     self.traj_yaw = 0.0
     self.traj_yaw_rate = 0.0
 
-
+  # ! set trajectory plan 
   def set_traj_plan(self, trajectory_plan):
     self.trajectory_plan = trajectory_plan
     self.set_poly_traj(trajectory_plan)
-    print(trajectory_plan)
-    
   
   def set_clock(self, t):
     self.t = t
 
-  # * polynominal trajectory planning
+  # ! polynominal trajectory planning
   def poly_traj_init(self, trajectory_plan):
-    print(trajectory_plan)
+
     if trajectory_plan == "straight":
       self.traj = pd.read_csv('/home/kato/lab_exp_desktop_crazyswarm/Simulation/CrazyClover/Controller/Trajectory segment parametors/traj_straight_4s.csv')
     
@@ -37,7 +37,10 @@ class Trajectory():
     
     elif trajectory_plan == "land":
       self.traj = pd.read_csv('/home/kato/lab_exp_desktop_crazyswarm/Simulation/CrazyClover/Controller/Trajectory segment parametors/traj_land.csv')
+    else:
+      return 0
     
+    # * set trajectory palametors 
     self.len_seg = self.traj["N_segment"][0]
     self.segs_T = self.traj["Tseg"][0:self.len_seg]
     self.Xcoeffs = self.traj["Xcoeff"]
@@ -49,10 +52,11 @@ class Trajectory():
     self.T = 0
     self.Toffset = self.t
 
-  # * periodic trajectory tracking 
+  # ! periodic trajectory tracking 
   def poly_traj_periodic(self):
+    
+    # * manage time to calculate polynominal trajectory
     t = self.t
-    # print(sum(self.segs_T) + self.Toffset, t)
     if sum(self.segs_T) + self.Toffset < t:
       self.Toffset += sum(self.segs_T)
       self.seg_now = 0
@@ -61,12 +65,13 @@ class Trajectory():
       self.T += self.segs_T[self.seg_now]
       self.seg_now += 1
     t -= (self.T + self.Toffset)
-    # print(t)
     
+    # * set polynominal coeffiients
     Xcoeff = self.Xcoeffs[self.seg_now*self.Order:(self.seg_now+1)*self.Order]
     Ycoeff = self.Ycoeffs[self.seg_now*self.Order:(self.seg_now+1)*self.Order]
     Zcoeff = self.Zcoeffs[self.seg_now*self.Order:(self.seg_now+1)*self.Order]
     
+    # * calculate states of trajectory (position, velocity, ...)
     poly_T0 = MF().time_polyder(t, 0, self.Order)
     poly_T1 = MF().time_polyder(t, 1, self.Order)
     poly_T2 = MF().time_polyder(t, 2, self.Order)
@@ -80,22 +85,24 @@ class Trajectory():
     self.traj_yaw = 0.0
     self.traj_yaw_rate = 0.0
 
-  # * non periodic trajectory tracking
+  # ! non periodic trajectory tracking
   def poly_traj_non_periodic(self):
+    
+    # * manage time to calculate polynominal trajectory
     t = self.t
-    # print(sum(self.segs_T) + self.Toffset, t)
     if sum(self.segs_T) + self.Toffset < t:
       return 0
     if sum(self.segs_T[:self.seg_now+1])+self.Toffset < t:
       self.T += self.segs_T[self.seg_now]
       self.seg_now += 1
     t -= (self.T + self.Toffset)
-    # print(t)
     
+    # * set polynominal coeffiients
     Xcoeff = self.Xcoeffs[self.seg_now*self.Order:(self.seg_now+1)*self.Order]
     Ycoeff = self.Ycoeffs[self.seg_now*self.Order:(self.seg_now+1)*self.Order]
     Zcoeff = self.Zcoeffs[self.seg_now*self.Order:(self.seg_now+1)*self.Order]
-    
+
+    # * calculate states of trajectory (position, velocity, ...)
     poly_T0 = MF().time_polyder(t, 0, self.Order)
     poly_T1 = MF().time_polyder(t, 1, self.Order)
     poly_T2 = MF().time_polyder(t, 2, self.Order)
@@ -108,7 +115,6 @@ class Trajectory():
 
     self.traj_yaw = 0.0
     self.traj_yaw_rate = 0.0
-
 
   def traj_circle(self):
     T = 7.0
@@ -122,18 +128,19 @@ class Trajectory():
 
     self.traj_yaw = 0.0
     self.traj_yaw_rate = 0.0
-  
+
+  # ! stop trajectory update (only set gravity cancel term)  
   def stop_track(self):
 
-    # self.traj_pos[0] = 0.0; self.traj_pos[1] = 0.0;  self.traj_pos[2] = 1.0
+    self.traj_pos[0] = 0.0; self.traj_pos[1] = 0.0;  self.traj_pos[2] = 0.0
     self.traj_vel[0] = 0.0; self.traj_vel[1] = 0.0;  self.traj_vel[2] = 0.0
     self.traj_acc[0] = 0.0; self.traj_acc[1] = 0.0;  self.traj_acc[2] = 9.8
     self.traj_jer[0] = 0.0; self.traj_jer[1] = 0.0;  self.traj_jer[2] = 0.0
-    # print(self.traj_acc)
 
     self.traj_yaw = 0.0
     self.traj_yaw_rate = 0.0
   
+  # ! select trajectory
   def set_traj(self):
     
     if self.trajectory_plan == "circle":
@@ -151,6 +158,7 @@ class Trajectory():
     elif self.trajectory_plan == "land":
       self.poly_traj_non_periodic()
   
+  # ! initialize polynominal trajectory 
   def set_poly_traj(self, poly_traj):
     self.poly_traj_init(poly_traj)
     
