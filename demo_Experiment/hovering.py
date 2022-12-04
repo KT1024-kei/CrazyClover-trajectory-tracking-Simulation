@@ -4,6 +4,7 @@
 import sys
 sys.path.append('../')
 import time
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -18,6 +19,16 @@ def Experiment(Texp, Tsam, num_drone):
     Drone_env = [0]*num_drone
     Drone_ctrl = [0]*num_drone
 
+    # * set flag for Experiment
+    track_flag = True
+    stop_flag = True
+    land_flag = True
+
+    # * set control flow time 
+    takeoff_time = 10
+    Texp = Texp + takeoff_time
+    stop_time = Texp + 0
+    land_time = stop_time + 10
 
     # * set simulation time, controller, takeoff command
     for i in range(num_drone):
@@ -35,7 +46,6 @@ def Experiment(Texp, Tsam, num_drone):
     # * simulation loop
     t = 0
     cnt = 0
-    land_Flag = True
     while True:
         
         # * set time and take log
@@ -58,11 +68,11 @@ def Experiment(Texp, Tsam, num_drone):
             cf[i].main(Drone_ctrl[i].input_acc, Drone_ctrl[i].input_Wb)
 
         # * land part
-        if t > 10:
+        if t > Texp:
             for i in range(num_drone):
-                if land_Flag:
+                if land_flag:
                     Drone_env[i].land_track(Drone_ctrl[i])
-                    land_Flag = False
+                    land_flag = False
 
         # * update plot 
         for i in range(num_drone):
@@ -73,7 +83,7 @@ def Experiment(Texp, Tsam, num_drone):
             cnt += 1
         
         # * time managment
-        if Env.time_check(Tsam, Texp): break
+        if Env.time_check(Tsam, land_time): break
         t += Tsam
     
     # * save log 
@@ -81,7 +91,7 @@ def Experiment(Texp, Tsam, num_drone):
         Drone_env[i].save_log()
 
 if __name__ == "__main__":
-  Experiment(20, 0.01, 1)
+  Experiment(5, 0.01, 1)
 
 
 
